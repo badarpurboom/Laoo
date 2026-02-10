@@ -87,8 +87,11 @@ Got an idea? Found a bug?
 
 ---
 
-<div align="center">
+---
 
-**Crafted with 💜 for the Restaurateurs of Tomorrow.**
+## ☁️ Deployment
 
-</div>
+### Hostinger VPS
+Detailed step-by-step instructions for deploying to a Hostinger VPS are available here:
+👉 **[Read the Hostinger Deployment Guide](HOSTINGER_DEPLOY.md)**
+
