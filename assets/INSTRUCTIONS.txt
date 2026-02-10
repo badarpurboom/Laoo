@@ -1,0 +1,16 @@
+# How to Add Screenshots
+
+To make your GitHub README look professional, follow these steps:
+
+1.  Open your app in the browser (`http://localhost:5173`).
+2.  Take a screenshot of the **Admin Dashboard** and save it as `admin_dashboard.png` in this `assets` folder.
+3.  Take a screenshot of the **Customer Menu** and save it as `customer_view.png` in this `assets` folder.
+4.  Commit and push these changes:
+    
+    ```bash
+    git add assets/*
+    git commit -m "Add project screenshots"
+    git push origin main
+    ```
+
+Once done, the images will automatically appear in your README on GitHub!

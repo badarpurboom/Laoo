@@ -1,0 +1,7 @@
+{
+  "name": "BistroFlow SaaS - Restaurant Management System",
+  "description": "A production-grade restaurant ordering and management system featuring a customer-facing menu and a comprehensive admin panel with AI-powered data insights, order desk, and multi-gateway payment configurations.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  ownerName   String
+  email       String
+  phone       String
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  categories  Category[]
+  menuItems   MenuItem[]
+  orders      Order[]
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  restaurantId String
+  name         String
+  icon         String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems    MenuItem[]
+}
+
+model MenuItem {
+  id           String        @id @default(cuid())
+  restaurantId String
+  name         String
+  description  String?
+  fullPrice    Float
+  halfPrice    Float?
+  categoryId   String
+  imageUrl     String?
+  isVeg        Boolean       @default(true)
+  isAvailable  Boolean       @default(true)
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  OrderDetails OrderDetail[]
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  restaurantId   String
+  customerName   String
+  customerPhone  String?       @default("0000000000")
+  totalAmount    Float
+  status         String        @default("PENDING")
+  orderType      String        @default("dine-in")
+  tableNumber    String?
+  address        String?
+  paymentStatus  String        @default("pending")
+  createdAt      DateTime      @default(now())
+  restaurant     Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  details        OrderDetail[]
+}
+
+model OrderDetail {
+  id         String   @id @default(cuid())
+  orderId    String
+  menuItemId String
+  quantity   Int
+  price      Float
+  portion    String?  @default("full")
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+}
