@@ -14,7 +14,18 @@ model Restaurant {
   ownerName   String
   email       String
   phone       String
+  username    String     @unique @default(cuid())
+  password    String     @default("123456")
   isActive    Boolean    @default(true)
+  
+  // Settings
+  address     String?
+  taxEnabled  Boolean    @default(true)
+  taxPercentage Float    @default(5.0)
+  deliveryChargesEnabled Boolean @default(true)
+  deliveryCharges Float  @default(40.0)
+  deliveryFreeThreshold Float @default(500.0)
+  
   createdAt   DateTime   @default(now())
   categories  Category[]
   menuItems   MenuItem[]

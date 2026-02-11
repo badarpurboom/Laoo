@@ -32,7 +32,9 @@ const App: React.FC = () => {
       } else if (hash === '#/login') {
         setActiveView('login');
       } else {
-        setActiveView('customer');
+        // Default to login page instead of customer view
+        window.location.hash = '#/login';
+        setActiveView('login');
       }
     };
 
@@ -47,13 +49,21 @@ const App: React.FC = () => {
     else window.location.hash = `#/${view}`;
   };
 
-  // Simple route guard simulation
+  // Route Guard Logic
   const renderView = () => {
     switch (activeView) {
       case 'super-admin':
-        return currentUser?.role === 'SUPER_ADMIN' ? <SuperAdminView /> : <LoginView />;
+        if (currentUser?.role !== 'SUPER_ADMIN') {
+          setTimeout(() => setActiveView('login'), 0);
+          return <LoginView />;
+        }
+        return <SuperAdminView />;
       case 'admin':
-        return currentUser?.role === 'RESTAURANT_ADMIN' ? <AdminView /> : <LoginView />;
+        if (currentUser?.role !== 'RESTAURANT_ADMIN') {
+          setTimeout(() => setActiveView('login'), 0);
+          return <LoginView />;
+        }
+        return <AdminView />;
       case 'docs':
         return <DocumentationView />;
       case 'login':

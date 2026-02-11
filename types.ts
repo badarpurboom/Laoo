@@ -26,7 +26,18 @@ export interface Restaurant {
   ownerName: string;
   email: string;
   phone: string;
+  username: string;
+  password: string;
   isActive: boolean;
+
+  // Settings
+  address?: string;
+  taxEnabled?: boolean;
+  taxPercentage?: number;
+  deliveryChargesEnabled?: boolean;
+  deliveryCharges?: number;
+  deliveryFreeThreshold?: number;
+
   createdAt: string;
 }
 

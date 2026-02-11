@@ -37,6 +37,7 @@ interface AppState {
   fetchDashboardData: () => Promise<void>;
   addRestaurant: (restaurant: Partial<Restaurant>) => Promise<void>;
   updateRestaurant: (restaurant: Restaurant) => Promise<void>;
+  deleteRestaurant: (id: string) => Promise<void>;
   setCurrentUser: (user: User | null) => void;
   setActiveRestaurantId: (id: string | null) => void;
   setActiveRestaurantBySlug: (slug: string) => Promise<void>;
@@ -51,7 +52,7 @@ interface AppState {
   addCategory: (category: Partial<Category>) => Promise<void>;
   addCategoriesBulk: (categories: { name: string, icon?: string }[]) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
-  updateSettings: (settings: RestaurantSettings) => void;
+  updateSettings: (settings: RestaurantSettings) => Promise<void>;
   updateAIConfig: (config: AIConfig) => void;
   updatePaymentConfig: (config: PaymentConfig) => void;
 }
@@ -66,17 +67,17 @@ export const useStore = create<AppState>()(
       menuItems: [],
       orders: [],
       settings: {
-        restaurantId: 'res-1',
-        name: "Laoo Central",
-        logoUrl: "https://picsum.photos/100/100?random=logo",
-        address: "123 Food Street, Tech City, CA 94103",
-        contact: "+1 (555) 000-1111",
-        gstNumber: "22AAAAA0000A1Z5",
-        taxEnabled: true,
-        taxPercentage: 5,
-        deliveryChargesEnabled: true,
-        deliveryCharges: 40,
-        deliveryFreeThreshold: 500,
+        restaurantId: '',
+        name: "",
+        logoUrl: "",
+        address: "",
+        contact: "",
+        gstNumber: "",
+        taxEnabled: false,
+        taxPercentage: 0,
+        deliveryChargesEnabled: false,
+        deliveryCharges: 0,
+        deliveryFreeThreshold: 0,
         currency: 'INR',
         isOpen: true,
         orderPreferences: {
@@ -102,21 +103,33 @@ export const useStore = create<AppState>()(
 
       fetchDashboardData: async () => {
         const { activeRestaurantId } = get();
+
+        // 1. Always fetch restaurants list first and successfully
         try {
-          const [resResp, catResp, itemResp, orderResp] = await Promise.all([
-            restaurantService.getAll(),
-            activeRestaurantId ? menuService.getCategories(activeRestaurantId) : Promise.resolve({ data: [] }),
-            activeRestaurantId ? menuService.getMenuItems(activeRestaurantId) : Promise.resolve({ data: [] }),
-            activeRestaurantId ? orderService.getOrders(activeRestaurantId) : Promise.resolve({ data: [] }),
-          ]);
-          set({
-            restaurants: resResp.data,
-            categories: catResp.data as any,
-            menuItems: itemResp.data as any,
-            orders: orderResp.data as any
-          });
+          const resResp = await restaurantService.getAll();
+          set({ restaurants: resResp.data });
         } catch (err) {
-          console.error("Failed to load dashboard data", err);
+          console.error("Failed to fetch restaurants", err);
+        }
+
+        // 2. Fetch active restaurant details if applicable
+        if (activeRestaurantId) {
+          try {
+            const [catResp, itemResp, orderResp] = await Promise.all([
+              menuService.getCategories(activeRestaurantId),
+              menuService.getMenuItems(activeRestaurantId),
+              orderService.getOrders(activeRestaurantId),
+            ]);
+            set({
+              categories: catResp.data as any,
+              menuItems: itemResp.data as any,
+              orders: orderResp.data as any
+            });
+          } catch (err) {
+            console.error("Failed to load active restaurant details", err);
+            // If fetching details fails (e.g. 404), might want to clear activeRestaurantId
+            // set({ activeRestaurantId: null });
+          }
         }
       },
 
@@ -128,6 +141,18 @@ export const useStore = create<AppState>()(
         const resp = await restaurantService.update(res.id, res);
         set((state) => ({
           restaurants: state.restaurants.map(r => r.id === res.id ? resp.data : r)
+        }));
+      },
+      deleteRestaurant: async (id) => {
+        try {
+          await restaurantService.delete(id);
+        } catch (err) {
+          console.error("API delete failed, removing locally anyway", err);
+        }
+        set((state) => ({
+          restaurants: state.restaurants.filter(r => r.id !== id),
+          // If we deleted the active restaurant, clear the active state
+          activeRestaurantId: state.activeRestaurantId === id ? null : state.activeRestaurantId
         }));
       },
       setCurrentUser: (user) => set({ currentUser: user }),
@@ -201,7 +226,30 @@ export const useStore = create<AppState>()(
           menuItems: state.menuItems.filter(m => m.categoryId !== id)
         }));
       },
-      updateSettings: (settings) => set({ settings }),
+      updateSettings: async (settings) => {
+        set({ settings });
+        const { activeRestaurantId } = get();
+        if (activeRestaurantId) {
+          // Map settings back to Restaurant model fields
+          const updateData: Partial<Restaurant> = {
+            name: settings.name,
+            address: settings.address,
+            phone: settings.contact,
+            isActive: settings.isOpen,
+            taxEnabled: settings.taxEnabled,
+            taxPercentage: settings.taxPercentage,
+            deliveryChargesEnabled: settings.deliveryChargesEnabled,
+            deliveryCharges: settings.deliveryCharges,
+            deliveryFreeThreshold: settings.deliveryFreeThreshold,
+            // store other fields if needed
+          };
+          try {
+            await restaurantService.update(activeRestaurantId, updateData);
+          } catch (err) {
+            console.error("Failed to persist settings", err);
+          }
+        }
+      },
       updateAIConfig: (aiConfig) => set({ aiConfig }),
       updatePaymentConfig: (paymentConfig) => set({ paymentConfig }),
     }),

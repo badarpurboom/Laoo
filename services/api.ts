@@ -11,6 +11,7 @@ export const restaurantService = {
     getBySlug: (slug: string) => api.get(`/restaurants/slug/${slug}`),
     create: (data: any) => api.post('/restaurants', data),
     update: (id: string, data: any) => api.put(`/restaurants/${id}`, data),
+    delete: (id: string) => api.delete(`/restaurants/${id}`),
 };
 
 export const menuService = {

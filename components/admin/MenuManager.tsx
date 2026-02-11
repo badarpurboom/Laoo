@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import { MenuItem, Category } from '../../types';
+import ImageUploader from '../common/ImageUploader';
 
 const MenuManager: React.FC = () => {
   const {
@@ -193,6 +194,13 @@ const MenuManager: React.FC = () => {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <ImageUploader
+                    currentImage={formData.imageUrl}
+                    onImageUploaded={(url) => setFormData({ ...formData, imageUrl: url })}
+                    label="Item Image"
+                  />
+                </div>
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Item Name</label>
                   <input

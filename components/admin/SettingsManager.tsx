@@ -2,6 +2,7 @@
 import React, { useRef } from 'react';
 import { useStore } from '../../store';
 import { QRCodeSVG } from 'qrcode.react';
+import ImageUploader from '../common/ImageUploader';
 
 const SettingsManager: React.FC = () => {
    const { settings, aiConfig, paymentConfig, updateSettings, updateAIConfig, updatePaymentConfig, activeRestaurantId, restaurants } = useStore();
@@ -36,16 +37,19 @@ const SettingsManager: React.FC = () => {
                <i className="fas fa-store text-indigo-600"></i> Restaurant Profile
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="col-span-full flex items-center gap-6">
-                  <div className="w-20 h-20 bg-slate-100 rounded-2xl overflow-hidden relative group">
-                     <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-cover" />
-                     <button className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <i className="fas fa-camera"></i>
-                     </button>
-                  </div>
-                  <div>
-                     <p className="text-sm font-bold text-slate-800">Restaurant Logo</p>
-                     <p className="text-xs text-slate-500">Allowed JPG, GIF or PNG. Max size 2MB</p>
+               <div className="col-span-full">
+                  <div className="flex items-start gap-6">
+                     <div className="w-40">
+                        <ImageUploader
+                           currentImage={settings.logoUrl}
+                           onImageUploaded={(url) => updateSettings({ ...settings, logoUrl: url })}
+                           label="Restaurant Logo"
+                        />
+                     </div>
+                     <div>
+                        <p className="text-sm font-bold text-slate-800 mt-2">Restaurant Logo</p>
+                        <p className="text-xs text-slate-500">Upload a high-quality square image. This will be displayed on your digital menu and QR code.</p>
+                     </div>
                   </div>
                </div>
                <div className="space-y-4">

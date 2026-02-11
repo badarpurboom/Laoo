@@ -4,19 +4,28 @@ import { useStore } from '../../store';
 import { Restaurant } from '../../types';
 
 const SuperAdminView: React.FC = () => {
-    const { restaurants, addRestaurant, updateRestaurant } = useStore();
+    const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant, fetchDashboardData } = useStore();
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        fetchDashboardData();
+    }, []);
     const [newRestaurant, setNewRestaurant] = useState({
         name: '',
         ownerName: '',
         email: '',
         phone: '',
     });
+    const [generatedPassword, setGeneratedPassword] = useState('');
 
     const generateSlug = (name: string) => {
         return name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    };
+
+    const generateUsername = (name: string) => {
+        return `admin_${name.toLowerCase().replace(/\s+/g, '')}_${Math.floor(Math.random() * 1000)}`;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -24,14 +33,21 @@ const SuperAdminView: React.FC = () => {
         setIsSubmitting(true);
         setError(null);
         try {
+            const username = generateUsername(newRestaurant.name);
+            const password = generatedPassword || Math.random().toString(36).slice(-8);
+
             const restaurantData = {
                 ...newRestaurant,
                 slug: generateSlug(newRestaurant.name),
                 isActive: true,
+                username,
+                password
             };
             await addRestaurant(restaurantData as any);
             setShowModal(false);
             setNewRestaurant({ name: '', ownerName: '', email: '', phone: '' });
+            setGeneratedPassword('');
+            alert(`Restaurant Created!\nUsername: ${username}\nPassword: ${password}\nPlease save these credentials.`);
         } catch (err: any) {
             console.error(err);
             setError(err.response?.data?.error || 'Failed to create restaurant. Please ensure the backend is running and the database is migrated.');
@@ -51,12 +67,23 @@ const SuperAdminView: React.FC = () => {
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Super Admin</h1>
                     <p className="text-slate-500">Manage all registered restaurants</p>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-                >
-                    <i className="fas fa-plus"></i> New Restaurant
-                </button>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => {
+                            useStore.getState().setCurrentUser(null);
+                            window.location.hash = '#/login';
+                        }}
+                        className="text-slate-500 hover:text-red-500 font-bold text-sm px-4 py-3"
+                    >
+                        <i className="fas fa-sign-out-alt mr-2"></i> Logout
+                    </button>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                    >
+                        <i className="fas fa-plus"></i> New Restaurant
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
@@ -81,6 +108,8 @@ const SuperAdminView: React.FC = () => {
                                 <td className="px-6 py-4">
                                     <div className="text-sm font-medium text-slate-700">{res.ownerName}</div>
                                     <div className="text-[10px] text-slate-400">{res.phone}</div>
+                                    <div className="text-[10px] text-indigo-400 mt-1 font-mono">User: {res.username || 'N/A'}</div>
+                                    <div className="text-[10px] text-slate-300 font-mono">Pass: {res.password ? '****' : 'N/A'}</div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${res.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
@@ -111,9 +140,19 @@ const SuperAdminView: React.FC = () => {
                                 <td className="px-6 py-4 text-right">
                                     <button
                                         onClick={() => toggleRestaurantStatus(res)}
-                                        className={`text-xs font-bold px-4 py-2 rounded-xl transition-all ${res.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
+                                        className={`text-xs font-bold px-4 py-2 rounded-xl transition-all mr-2 ${res.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
                                     >
                                         {res.isActive ? 'Disable' : 'Enable'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Are you sure you want to delete this restaurant? This cannot be undone.')) {
+                                                deleteRestaurant(res.id);
+                                            }
+                                        }}
+                                        className="text-xs font-bold px-4 py-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                                    >
+                                        <i className="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -155,6 +194,17 @@ const SuperAdminView: React.FC = () => {
                             <div>
                                 <label className="block text-xs font-black text-slate-400 uppercase mb-1 tracking-widest">Email Address</label>
                                 <input required type="email" value={newRestaurant.email} onChange={e => setNewRestaurant({ ...newRestaurant, email: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-1 tracking-widest">Set Admin Password</label>
+                                <input
+                                    type="text"
+                                    placeholder="Leave blank to auto-generate"
+                                    value={generatedPassword}
+                                    onChange={e => setGeneratedPassword(e.target.value)}
+                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1">Username will be auto-generated (e.g. admin_pizzahut_123)</p>
                             </div>
                             <button
                                 type="submit"
