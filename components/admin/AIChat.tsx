@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store';
-import { queryDataWithAI } from '../../services/geminiService';
+import { queryDataWithAI } from '../../services/aiService';
 
 const AIChat: React.FC = () => {
-  const { orders, menuItems, activeRestaurantId } = useStore();
+  const { orders, menuItems, activeRestaurantId, aiConfig } = useStore();
 
   const tenantOrders = orders.filter(o => o.restaurantId === activeRestaurantId);
   const tenantMenuItems = menuItems.filter(m => m.restaurantId === activeRestaurantId);
@@ -30,7 +30,14 @@ const AIChat: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setIsTyping(true);
 
-    const aiResponse = await queryDataWithAI(userMsg, tenantOrders, tenantMenuItems);
+    const aiResponse = await queryDataWithAI(
+      userMsg,
+      tenantOrders,
+      tenantMenuItems,
+      aiConfig?.apiKey || '',
+      aiConfig?.provider || 'gemini',
+      aiConfig?.model
+    );
 
     setIsTyping(false);
     setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
@@ -63,8 +70,8 @@ const AIChat: React.FC = () => {
         {messages.map((m, idx) => (
           <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user'
-                ? 'bg-indigo-600 text-white rounded-tr-none'
-                : 'bg-slate-100 text-slate-700 rounded-tl-none border border-slate-200'
+              ? 'bg-indigo-600 text-white rounded-tr-none'
+              : 'bg-slate-100 text-slate-700 rounded-tl-none border border-slate-200'
               }`}>
               <div className="whitespace-pre-wrap">{m.content}</div>
             </div>

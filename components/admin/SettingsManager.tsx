@@ -264,35 +264,68 @@ const SettingsManager: React.FC = () => {
                <i className="fas fa-brain text-purple-600"></i> AI Data Analyst Configuration
             </h3>
             <div className="space-y-6">
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Provider</label>
-                     <select className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                        <option>Google Gemini (Recommended)</option>
-                        <option>OpenAI GPT-4o</option>
+                     <select
+                        value={aiConfig.provider}
+                        onChange={(e) => updateAIConfig({ ...aiConfig, provider: e.target.value as 'openai' | 'gemini' })}
+                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                     >
+                        <option value="gemini">Google Gemini</option>
+                        <option value="openai">OpenAI GPT-4o</option>
                      </select>
                   </div>
                   <div>
                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Model</label>
-                     <select className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none">
-                        <option>gemini-3-flash-preview</option>
-                        <option>gemini-3-pro-preview</option>
+                     <select
+                        value={aiConfig.model}
+                        onChange={(e) => updateAIConfig({ ...aiConfig, model: e.target.value })}
+                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                     >
+                        {aiConfig.provider === 'gemini' ? (
+                           <>
+                              <option value="gemini-3-flash-preview">gemini-3-flash-preview</option>
+                              <option value="gemini-3-pro-preview">gemini-3-pro-preview</option>
+                              <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                           </>
+                        ) : (
+                           <>
+                              <option value="gpt-4o">gpt-4o</option>
+                              <option value="gpt-4-turbo">gpt-4-turbo</option>
+                              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                           </>
+                        )}
                      </select>
                   </div>
                </div>
+
+               <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">API Key</label>
+                  <div className="relative">
+                     <input
+                        type="password"
+                        value={aiConfig.apiKey}
+                        onChange={(e) => updateAIConfig({ ...aiConfig, apiKey: e.target.value })}
+                        placeholder={`Enter your ${aiConfig.provider === 'gemini' ? 'Google AI' : 'OpenAI'} API Key`}
+                        className="w-full pl-4 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all font-mono text-sm"
+                     />
+                     <div className="absolute right-3 top-2.5 text-slate-400">
+                        <i className="fas fa-key"></i>
+                     </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                     Your key is stored locally in your browser and used only for requests.
+                  </p>
+               </div>
+
                <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">System Prompt</label>
                   <textarea
                      value={aiConfig.promptSystem}
                      onChange={e => updateAIConfig({ ...aiConfig, promptSystem: e.target.value })}
-                     className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none h-24"
+                     className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none h-24 text-sm"
                   ></textarea>
-               </div>
-               <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                  <p className="text-xs text-indigo-700 flex items-start gap-2">
-                     <i className="fas fa-info-circle mt-0.5"></i>
-                     Gemini API Key is currently injected via environment variables for this demo. In a production SaaS, this would be encrypted and stored per-tenant.
-                  </p>
                </div>
             </div>
          </section>

@@ -3,6 +3,7 @@
 import React from 'react';
 import { useStore } from '../../store';
 import { OrderStatus } from '../../types';
+import { printKOT } from '../../utils/printKOT';
 
 const OrderDesk: React.FC = () => {
   const { orders, updateOrderStatus, updatePaymentStatus, activeRestaurantId, settings, fetchDashboardData } = useStore();
@@ -217,6 +218,16 @@ const OrderDesk: React.FC = () => {
                   </span>
                 </div>
 
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); printKOT(order, settings); }}
+                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                    title="Print KOT"
+                  >
+                    <i className="fas fa-print"></i> KOT
+                  </button>
+                </div>
+
                 <div className="space-y-2 mb-4">
                   {(order.items || []).map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm text-slate-600 border-b border-dashed border-slate-100 pb-1">
@@ -277,8 +288,15 @@ const OrderDesk: React.FC = () => {
               {tenantOrders.map(order => (
                 <div key={order.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
                   <div className={`p-4 border-b flex justify-between items-center ${getStatusColor(order.status as any)}`}>
-                    <div>
+                    <div className="flex items-center gap-3">
                       <h4 className="font-bold">{order.id}</h4>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); printKOT(order, settings); }}
+                        className="bg-white/50 hover:bg-white text-slate-700 px-2 py-1 rounded text-[10px] font-bold transition-colors flex items-center gap-1"
+                        title="Print KOT"
+                      >
+                        <i className="fas fa-print"></i> KOT
+                      </button>
                     </div>
                     <span className="text-[10px] font-bold bg-white/50 px-2 py-1 rounded">
                       {order.timestamp ? new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
@@ -420,6 +438,31 @@ const OrderDesk: React.FC = () => {
                     <span className="text-xs font-bold bg-white px-2 py-1 rounded text-orange-600 border border-orange-200">
                       {table.orders.length} Orders
                     </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 px-4 py-2 bg-orange-50/30 border-b border-orange-50">
+                    <button
+                      onClick={() => {
+                        // Construct a synthetic order with ALL items for this table
+                        // This acts as a "Running KOT" or "Table Summary"
+                        const aggregatedOrder: any = {
+                          id: `TBL-${table.tableNumber}-RUNNING`,
+                          restaurantId: settings.restaurantId,
+                          customerName: table.customerName,
+                          items: table.items, // All items from all orders
+                          totalAmount: table.totalAmount,
+                          status: 'preparing',
+                          orderType: 'dine-in',
+                          timestamp: new Date().toISOString(),
+                          tableNumber: table.tableNumber,
+                          paymentStatus: 'pending'
+                        };
+                        printKOT(aggregatedOrder, settings);
+                      }}
+                      className="text-xs font-bold text-orange-600 hover:text-orange-800 flex items-center gap-1"
+                    >
+                      <i className="fas fa-print"></i> Print Running KOT (All Items)
+                    </button>
                   </div>
 
                   <div className="flex-1 p-4">
