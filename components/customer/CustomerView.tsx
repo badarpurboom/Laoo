@@ -246,8 +246,24 @@ const CustomerView: React.FC = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white shadow-sm px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <img src={settings.logoUrl} alt="logo" className="w-10 h-10 rounded-lg" />
-          <h1 className="text-xl font-bold tracking-tight text-slate-800">{settings.name}</h1>
+          <img src={settings.logoUrl} alt="logo" className="w-10 h-10 rounded-lg shadow-sm" />
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{settings.name}</h1>
+            {activeTable && (
+              <button
+                onClick={() => {
+                  if (confirm("Leave this table session?")) {
+                    localStorage.removeItem('bistro_table_number');
+                    setActiveTable('');
+                    window.location.reload();
+                  }
+                }}
+                className="text-xs font-bold text-orange-600 flex items-center gap-1 mt-1 hover:bg-orange-50 px-1 -ml-1 rounded"
+              >
+                <i className="fas fa-chair"></i> Table {activeTable} <i className="fas fa-times opacity-50 ml-1"></i>
+              </button>
+            )}
+          </div>
         </div>
         <button
           onClick={() => setShowCart(true)}
@@ -267,8 +283,9 @@ const CustomerView: React.FC = () => {
         <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-white text-slate-800 text-xs font-bold shadow-sm border border-slate-200">
           Menu
         </button>
+
         {sessionBill.total > 0 && (
-          <button onClick={() => setShowBill(true)} className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-800 text-white text-xs font-bold shadow-sm flex items-center gap-2 animate-pulse">
+          <button onClick={() => setShowBill(true)} className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-800 text-white text-xs font-bold shadow-sm flex items-center gap-2">
             <i className="fas fa-receipt"></i>
             Bill: ₹{sessionBill.total.toFixed(0)}
           </button>
@@ -472,7 +489,7 @@ const CustomerView: React.FC = () => {
                     />
                   </div>
 
-                  {orderType === 'delivery' && (
+                  {(orderType === 'delivery' || settings.orderPreferences?.requireCustomerPhone) && (
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Contact Number</label>
                       <input

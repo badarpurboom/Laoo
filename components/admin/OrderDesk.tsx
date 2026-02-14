@@ -168,6 +168,7 @@ const OrderDesk: React.FC = () => {
 
   return (
     <div className="space-y-6 relative">
+// This line is removed to fix duplication
       <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -199,6 +200,8 @@ const OrderDesk: React.FC = () => {
           {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
         </button>
       </div>
+
+
 
       {/* Simple Mode for Small Restaurants (No Table Number = No Status Flow) */}
       {(!settings.orderPreferences?.requireTableNumber && settings.orderPreferences?.dineIn) ? (

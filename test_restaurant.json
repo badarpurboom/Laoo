@@ -1,0 +1,10 @@
+{
+    "name": "Test Restaurant",
+    "ownerName": "Test Owner",
+    "email": "test@test.com",
+    "phone": "9876543210",
+    "slug": "test-restaurant-curl",
+    "isActive": true,
+    "username": "admin_curl_test",
+    "password": "password123"
+}

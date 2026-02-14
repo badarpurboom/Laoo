@@ -1,0 +1,37 @@
+server {
+    listen 80;
+    server_name laoo.online www.laoo.online 93.127.206.108;
+    client_max_body_size 10M;
+    return 301 https://laoo.online$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name laoo.online www.laoo.online;
+
+    ssl_certificate /etc/letsencrypt/live/laoo.online/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/laoo.online/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    client_max_body_size 10M;
+
+    root /var/www/Laoo/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /uploads {
+        proxy_pass http://localhost:5000/uploads;
+    }
+}

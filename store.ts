@@ -66,6 +66,7 @@ export const useStore = create<AppState>()(
       categories: [],
       menuItems: [],
       orders: [],
+
       settings: {
         restaurantId: '',
         name: "",
@@ -118,8 +119,9 @@ export const useStore = create<AppState>()(
             const [catResp, itemResp, orderResp] = await Promise.all([
               menuService.getCategories(activeRestaurantId),
               menuService.getMenuItems(activeRestaurantId),
-              orderService.getOrders(activeRestaurantId),
+              orderService.getOrders(activeRestaurantId)
             ]);
+
             set({
               categories: catResp.data as any,
               menuItems: itemResp.data as any,
@@ -127,8 +129,6 @@ export const useStore = create<AppState>()(
             });
           } catch (err) {
             console.error("Failed to load active restaurant details", err);
-            // If fetching details fails (e.g. 404), might want to clear activeRestaurantId
-            // set({ activeRestaurantId: null });
           }
         }
       },
@@ -163,10 +163,32 @@ export const useStore = create<AppState>()(
       setActiveRestaurantBySlug: async (slug) => {
         const resp = await restaurantService.getBySlug(slug);
         if (resp.data) {
+          const restaurant = resp.data as any;
           set({
-            activeRestaurantId: resp.data.id,
-            categories: (resp.data as any).categories || [],
-            menuItems: (resp.data as any).menuItems || []
+            activeRestaurantId: restaurant.id,
+            categories: restaurant.categories || [],
+            menuItems: restaurant.menuItems || [],
+            settings: {
+              restaurantId: restaurant.id,
+              name: restaurant.name || '',
+              logoUrl: restaurant.logoUrl || '',
+              address: restaurant.address || '',
+              contact: restaurant.phone || '',
+              gstNumber: '',
+              taxEnabled: restaurant.taxEnabled || false,
+              taxPercentage: restaurant.taxPercentage || 0,
+              deliveryChargesEnabled: restaurant.deliveryChargesEnabled || false,
+              deliveryCharges: restaurant.deliveryCharges || 0,
+              deliveryFreeThreshold: restaurant.deliveryFreeThreshold || 0,
+              currency: 'INR',
+              isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
+              orderPreferences: {
+                dineIn: true,
+                takeaway: true,
+                delivery: true,
+                requireTableNumber: true
+              }
+            }
           });
         }
       },
@@ -235,6 +257,7 @@ export const useStore = create<AppState>()(
             name: settings.name,
             address: settings.address,
             phone: settings.contact,
+            logoUrl: settings.logoUrl,
             isActive: settings.isOpen,
             taxEnabled: settings.taxEnabled,
             taxPercentage: settings.taxPercentage,

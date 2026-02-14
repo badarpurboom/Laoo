@@ -10,6 +10,9 @@ import SettingsManager from './SettingsManager';
 const AdminView: React.FC = () => {
   const { currentUser, setActiveRestaurantId, activeRestaurantId, setCurrentUser, settings, restaurants } = useStore();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'menu' | 'ai' | 'settings'>('dashboard');
+  const [audioEnabled, setAudioEnabled] = React.useState(true);
+
+
 
   React.useEffect(() => {
     if (currentUser?.restaurantId && activeRestaurantId !== currentUser.restaurantId) {
@@ -41,7 +44,7 @@ const AdminView: React.FC = () => {
           <div className="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center">
             <i className="fas fa-bolt text-xs"></i>
           </div>
-          <span className="font-bold text-lg tracking-tight">BistroFlow</span>
+          <span className="font-bold text-lg tracking-tight">Laoo</span>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
@@ -68,7 +71,6 @@ const AdminView: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <main className="flex-1 bg-slate-50 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
         <header className="flex justify-between items-center mb-8">
           <div>

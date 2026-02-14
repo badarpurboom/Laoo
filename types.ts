@@ -41,6 +41,15 @@ export interface Restaurant {
   createdAt: string;
 }
 
+export interface Notification {
+  id: string;
+  restaurantId: string;
+  tableNumber: string;
+  type: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface MenuItem {
   id: string;
   restaurantId: string;
@@ -95,6 +104,7 @@ export interface RestaurantSettings {
     takeaway: boolean;
     delivery: boolean;
     requireTableNumber: boolean;
+    requireCustomerPhone?: boolean;
   };
 }
 

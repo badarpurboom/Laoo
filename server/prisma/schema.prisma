@@ -20,6 +20,7 @@ model Restaurant {
   
   // Settings
   address     String?
+  logoUrl     String?
   taxEnabled  Boolean    @default(true)
   taxPercentage Float    @default(5.0)
   deliveryChargesEnabled Boolean @default(true)
@@ -30,6 +31,7 @@ model Restaurant {
   categories  Category[]
   menuItems   MenuItem[]
   orders      Order[]
+  notifications Notification[]
 }
 
 model Category {
@@ -82,4 +84,14 @@ model OrderDetail {
   portion    String?  @default("full")
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id           String     @id @default(cuid())
+  restaurantId String
+  tableNumber  String
+  type         String     @default("WAITER_CALL") // WAITER_CALL, BILL_REQUEST
+  status       String     @default("pending")     // pending, resolved
+  createdAt    DateTime   @default(now())
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 }

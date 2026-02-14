@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import axios from 'axios';
+import { restaurantService } from '../../services/api';
 
 interface ImageUploaderProps {
     currentImage?: string;
@@ -25,12 +25,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ currentImage, onImageUplo
         formData.append('image', file);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            const uploadedUrl = res.data.imageUrl;
+            const uploadedUrl = await restaurantService.uploadImage(formData);
             onImageUploaded(uploadedUrl);
             setPreview(uploadedUrl);
         } catch (err) {
