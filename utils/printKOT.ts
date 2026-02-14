@@ -2,23 +2,23 @@
 import { Order, RestaurantSettings } from '../types';
 
 export const printKOT = (order: Order, settings: RestaurantSettings) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        alert("Please allow popups to print KOT");
-        return;
-    }
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert("Please allow popups to print KOT");
+    return;
+  }
 
-    const itemsHtml = (order.items || []).map(item => `
+  const itemsHtml = (order.items || []).map(item => `
     <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px;">
       <span style="font-weight: bold;">${item.quantity}x ${item.name} ${item.portionType ? `(${item.portionType})` : ''}</span>
       <span>${(item.price * item.quantity).toFixed(0)}</span>
     </div>
   `).join('');
 
-    const timeString = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const dateString = new Date(order.timestamp).toLocaleDateString();
+  const timeString = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateString = new Date(order.timestamp).toLocaleDateString();
 
-    const htmlContent = `
+  const htmlContent = `
     <html>
       <head>
         <title>KOT - ${order.id}</title>
@@ -57,6 +57,15 @@ export const printKOT = (order: Order, settings: RestaurantSettings) => {
           <div class="type-tag">${order.orderType.toUpperCase()}</div>
           ${order.tableNumber ? `<div style="font-size: 14px; font-weight: bold; margin-top: 5px;">Table: ${order.tableNumber}</div>` : ''}
           <div style="font-size: 14px; font-weight: bold; margin-top: 5px;">${order.customerName}</div>
+          ${order.orderType === 'delivery' && order.address ? `
+            <div style="font-size: 11px; margin-top: 4px; padding: 4px 6px; border: 1px dashed #000; border-radius: 4px;">
+              <strong>📍 Delivery Address:</strong><br/>
+              ${order.address}
+            </div>
+          ` : ''}
+          ${order.orderType === 'delivery' && order.customerPhone ? `
+            <div style="font-size: 12px; margin-top: 3px; font-weight: bold;">📞 ${order.customerPhone}</div>
+          ` : ''}
         </div>
 
         <div class="items">
@@ -82,6 +91,6 @@ export const printKOT = (order: Order, settings: RestaurantSettings) => {
     </html>
   `;
 
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
 };
