@@ -32,11 +32,18 @@ export interface Restaurant {
 
   // Settings
   address?: string;
+  logoUrl?: string;
   taxEnabled?: boolean;
   taxPercentage?: number;
   deliveryChargesEnabled?: boolean;
   deliveryCharges?: number;
   deliveryFreeThreshold?: number;
+
+  // Order Preferences
+  dineInEnabled?: boolean;
+  takeawayEnabled?: boolean;
+  deliveryEnabled?: boolean;
+  requireTableNumber?: boolean;
 
   createdAt: string;
 }

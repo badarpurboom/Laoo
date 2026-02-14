@@ -15,10 +15,11 @@ const AdminView: React.FC = () => {
 
 
   React.useEffect(() => {
-    if (currentUser?.restaurantId && activeRestaurantId !== currentUser.restaurantId) {
+    if (currentUser?.restaurantId) {
+      // Always load settings from API on mount (even on refresh)
       setActiveRestaurantId(currentUser.restaurantId);
     }
-  }, [currentUser, activeRestaurantId, setActiveRestaurantId]);
+  }, [currentUser?.restaurantId]);
 
   const activeRestaurant = restaurants.find(r => r.id === currentUser?.restaurantId);
 

@@ -27,6 +27,12 @@ model Restaurant {
   deliveryCharges Float  @default(40.0)
   deliveryFreeThreshold Float @default(500.0)
   
+  // Order Preferences
+  dineInEnabled Boolean @default(true)
+  takeawayEnabled Boolean @default(true)
+  deliveryEnabled Boolean @default(true)
+  requireTableNumber Boolean @default(true)
+  
   createdAt   DateTime   @default(now())
   categories  Category[]
   menuItems   MenuItem[]

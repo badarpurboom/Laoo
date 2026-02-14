@@ -156,8 +156,48 @@ export const useStore = create<AppState>()(
         }));
       },
       setCurrentUser: (user) => set({ currentUser: user }),
-      setActiveRestaurantId: (id) => {
+      setActiveRestaurantId: async (id) => {
         set({ activeRestaurantId: id });
+
+        // Load settings from the selected restaurant (from API)
+        if (id) {
+          try {
+            // Always fetch fresh from API to ensure latest data
+            const resp = await restaurantService.getAll();
+            const allRestaurants = resp.data || [];
+            set({ restaurants: allRestaurants });
+
+            const restaurant = allRestaurants.find((r: any) => r.id === id);
+            if (restaurant) {
+              set({
+                settings: {
+                  restaurantId: restaurant.id,
+                  name: restaurant.name || '',
+                  logoUrl: restaurant.logoUrl || '',
+                  address: restaurant.address || '',
+                  contact: restaurant.phone || '',
+                  gstNumber: '',
+                  taxEnabled: restaurant.taxEnabled !== undefined ? restaurant.taxEnabled : true,
+                  taxPercentage: restaurant.taxPercentage !== undefined ? restaurant.taxPercentage : 5,
+                  deliveryChargesEnabled: restaurant.deliveryChargesEnabled !== undefined ? restaurant.deliveryChargesEnabled : true,
+                  deliveryCharges: restaurant.deliveryCharges !== undefined ? restaurant.deliveryCharges : 40,
+                  deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 500,
+                  currency: 'INR',
+                  isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
+                  orderPreferences: {
+                    dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
+                    takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
+                    delivery: restaurant.deliveryEnabled !== undefined ? restaurant.deliveryEnabled : true,
+                    requireTableNumber: restaurant.requireTableNumber !== undefined ? restaurant.requireTableNumber : true
+                  }
+                }
+              });
+            }
+          } catch (err) {
+            console.error("Failed to fetch restaurant settings", err);
+          }
+        }
+
         get().fetchDashboardData();
       },
       setActiveRestaurantBySlug: async (slug) => {
@@ -175,18 +215,18 @@ export const useStore = create<AppState>()(
               address: restaurant.address || '',
               contact: restaurant.phone || '',
               gstNumber: '',
-              taxEnabled: restaurant.taxEnabled || false,
-              taxPercentage: restaurant.taxPercentage || 0,
-              deliveryChargesEnabled: restaurant.deliveryChargesEnabled || false,
-              deliveryCharges: restaurant.deliveryCharges || 0,
-              deliveryFreeThreshold: restaurant.deliveryFreeThreshold || 0,
+              taxEnabled: restaurant.taxEnabled !== undefined ? restaurant.taxEnabled : false,
+              taxPercentage: restaurant.taxPercentage !== undefined ? restaurant.taxPercentage : 0,
+              deliveryChargesEnabled: restaurant.deliveryChargesEnabled !== undefined ? restaurant.deliveryChargesEnabled : false,
+              deliveryCharges: restaurant.deliveryCharges !== undefined ? restaurant.deliveryCharges : 0,
+              deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 0,
               currency: 'INR',
               isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
               orderPreferences: {
-                dineIn: true,
-                takeaway: true,
-                delivery: true,
-                requireTableNumber: true
+                dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
+                takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
+                delivery: restaurant.deliveryEnabled !== undefined ? restaurant.deliveryEnabled : true,
+                requireTableNumber: restaurant.requireTableNumber !== undefined ? restaurant.requireTableNumber : true
               }
             }
           });
@@ -264,7 +304,10 @@ export const useStore = create<AppState>()(
             deliveryChargesEnabled: settings.deliveryChargesEnabled,
             deliveryCharges: settings.deliveryCharges,
             deliveryFreeThreshold: settings.deliveryFreeThreshold,
-            // store other fields if needed
+            dineInEnabled: settings.orderPreferences?.dineIn,
+            takeawayEnabled: settings.orderPreferences?.takeaway,
+            deliveryEnabled: settings.orderPreferences?.delivery,
+            requireTableNumber: settings.orderPreferences?.requireTableNumber,
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData);
@@ -278,6 +321,13 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'bistroflow-storage',
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        activeRestaurantId: state.activeRestaurantId,
+        aiConfig: state.aiConfig,
+        paymentConfig: state.paymentConfig,
+        // Don't persist: settings (load from DB), restaurants, categories, menuItems, orders
+      }),
     }
   )
 );
