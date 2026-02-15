@@ -8,6 +8,7 @@ export const axiosInstance = axios.create({
 
 export const restaurantService = {
     getAll: () => axiosInstance.get('/restaurants'),
+    getStats: () => axiosInstance.get('/restaurants/stats'),
     getBySlug: (slug: string) => axiosInstance.get(`/restaurants/slug/${slug}`),
     create: (data: any) => axiosInstance.post('/restaurants', data),
     update: (id: string, data: any) => axiosInstance.put(`/restaurants/${id}`, data),

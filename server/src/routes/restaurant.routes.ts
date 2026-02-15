@@ -3,11 +3,36 @@ import { prisma } from '../index.js';
 
 const router = Router();
 
+// Get super admin stats
+router.get('/stats', async (req, res) => {
+    try {
+        const [totalRestaurants, activeRestaurants, totalOrders, revenueResult] = await Promise.all([
+            prisma.restaurant.count(),
+            prisma.restaurant.count({ where: { isActive: true } }),
+            prisma.order.count(),
+            prisma.order.aggregate({ _sum: { totalAmount: true } })
+        ]);
+        res.json({
+            totalRestaurants,
+            activeRestaurants,
+            totalOrders,
+            totalRevenue: revenueResult._sum.totalAmount || 0
+        });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get all restaurants
 router.get('/', async (req, res) => {
     try {
         const restaurants = await prisma.restaurant.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            include: {
+                _count: {
+                    select: { orders: true, menuItems: true }
+                }
+            }
         });
         res.json(restaurants);
     } catch (error: any) {

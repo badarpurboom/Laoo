@@ -25,7 +25,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Request logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} [${req.method}] ${req.url}`);
-    if (Object.keys(req.body).length > 0) {
+    if (req.body && Object.keys(req.body).length > 0) {
         console.log('Body:', JSON.stringify(req.body, null, 2));
     }
     next();
