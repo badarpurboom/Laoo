@@ -6,8 +6,9 @@ import { restaurantService } from '../../services/api';
 import QueryChat from './QueryChat';
 
 const SuperAdminView: React.FC = () => {
-    const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant, fetchDashboardData } = useStore();
+    const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant, fetchDashboardData, aiConfig, updateAIConfig } = useStore();
     const [showModal, setShowModal] = useState(false);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [editModal, setEditModal] = useState<Restaurant | null>(null);
     const [trialModal, setTrialModal] = useState<Restaurant | null>(null);
     const [trialDays, setTrialDays] = useState(10);
@@ -239,6 +240,13 @@ const SuperAdminView: React.FC = () => {
                             className="text-slate-500 hover:text-red-500 font-bold text-sm px-3 py-2 rounded-lg hover:bg-red-50 transition-all"
                         >
                             <i className="fas fa-sign-out-alt mr-1"></i> Logout
+                        </button>
+                        <button
+                            onClick={() => setShowSettingsModal(true)}
+                            className="text-slate-500 hover:text-indigo-600 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 transition-all shadow-sm"
+                            title="AI Settings"
+                        >
+                            <i className="fas fa-cog"></i>
                         </button>
                         <button
                             onClick={() => setActiveView(activeView === 'query' ? 'restaurants' : 'query')}
@@ -760,7 +768,66 @@ const SuperAdminView: React.FC = () => {
                     </div>
                 )
             }
-        </div >
+            {/* AI Settings Modal */}
+            {showSettingsModal && (
+                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h3 className="text-lg font-black text-slate-800">AI Configuration</h3>
+                            <button onClick={() => setShowSettingsModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">AI Provider</label>
+                                <select
+                                    value={aiConfig.provider}
+                                    onChange={(e) => updateAIConfig({ ...aiConfig, provider: e.target.value as 'openai' | 'gemini' })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none font-medium"
+                                >
+                                    <option value="gemini">Google Gemini</option>
+                                    <option value="openai">OpenAI</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">API Key</label>
+                                <input
+                                    type="password"
+                                    value={aiConfig.apiKey || ''}
+                                    onChange={(e) => updateAIConfig({ ...aiConfig, apiKey: e.target.value })}
+                                    placeholder="Paste your API key here"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none font-medium text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Model</label>
+                                <input
+                                    type="text"
+                                    value={aiConfig.model || ''}
+                                    onChange={(e) => updateAIConfig({ ...aiConfig, model: e.target.value })}
+                                    placeholder={aiConfig.provider === 'gemini' ? 'gemini-1.5-flash' : 'gpt-4o'}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none font-medium text-xs"
+                                />
+                            </div>
+                            <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                                <p className="text-[10px] leading-relaxed text-indigo-700 font-medium">
+                                    <i className="fas fa-info-circle mr-1"></i>
+                                    These settings are global for the Super Admin. The API key is used to translate your questions into SQL queries.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowSettingsModal(false)}
+                                className="w-full bg-slate-800 text-white py-3 rounded-xl font-bold hover:bg-slate-900 transition-all shadow-lg"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )
+            }
+        </div>
     );
 };
 
