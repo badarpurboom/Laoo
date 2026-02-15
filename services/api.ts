@@ -12,6 +12,7 @@ export const restaurantService = {
     getBySlug: (slug: string) => axiosInstance.get(`/restaurants/slug/${slug}`),
     create: (data: any) => axiosInstance.post('/restaurants', data),
     update: (id: string, data: any) => axiosInstance.put(`/restaurants/${id}`, data),
+    updateTrial: (id: string, trialDays: number) => axiosInstance.patch(`/restaurants/${id}/trial`, { trialDays }),
     delete: (id: string) => axiosInstance.delete(`/restaurants/${id}`),
     uploadImage: async (formData: FormData) => {
         const response = await axios.post(`${API_URL}/upload`, formData, {

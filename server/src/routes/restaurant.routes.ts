@@ -60,11 +60,36 @@ router.get('/slug/:slug', async (req, res) => {
     }
 });
 
-// Create restaurant
+// Create restaurant (with default 10-day trial)
 router.post('/', async (req, res) => {
     try {
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 10); // Default 10-day trial
+
         const restaurant = await prisma.restaurant.create({
-            data: req.body
+            data: {
+                ...req.body,
+                trialEndDate
+            }
+        });
+        res.json(restaurant);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update trial days for a restaurant
+router.patch('/:id/trial', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { trialDays } = req.body; // number of days from today
+
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + trialDays);
+
+        const restaurant = await prisma.restaurant.update({
+            where: { id },
+            data: { trialEndDate }
         });
         res.json(restaurant);
     } catch (error: any) {

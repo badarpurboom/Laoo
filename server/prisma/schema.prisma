@@ -33,6 +33,9 @@ model Restaurant {
   deliveryEnabled Boolean @default(true)
   requireTableNumber Boolean @default(true)
   
+  // Trial
+  trialEndDate DateTime?
+  
   createdAt   DateTime   @default(now())
   categories  Category[]
   menuItems   MenuItem[]
