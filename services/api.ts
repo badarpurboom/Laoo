@@ -44,3 +44,9 @@ export const orderService = {
     updateStatus: (id: string, status: string) => axiosInstance.patch(`/orders/${id}/status`, { status }),
     updatePaymentStatus: (id: string, status: 'pending' | 'paid') => axiosInstance.patch(`/orders/${id}/payment-status`, { status }),
 };
+
+export const queryService = {
+    getPredefined: () => axiosInstance.get('/query/predefined'),
+    getSchema: () => axiosInstance.get('/query/schema'),
+    execute: (data: { queryKey?: string; customSql?: string }) => axiosInstance.post('/query/execute', data),
+};
