@@ -29,6 +29,7 @@ export interface Restaurant {
   username: string;
   password: string;
   isActive: boolean;
+  businessType?: string; // "restaurant" or "hotel"
 
   // Settings
   address?: string;

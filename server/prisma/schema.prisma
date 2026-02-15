@@ -17,6 +17,7 @@ model Restaurant {
   username    String     @unique @default(cuid())
   password    String     @default("123456")
   isActive    Boolean    @default(true)
+  businessType String    @default("restaurant") // "restaurant" or "hotel"
   
   // Settings
   address     String?

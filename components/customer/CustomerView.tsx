@@ -85,7 +85,11 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
 };
 
 const CustomerView: React.FC = () => {
-  const { menuItems, categories, settings, addOrder, activeRestaurantId, orders } = useStore();
+  const { menuItems, categories, settings, addOrder, activeRestaurantId, orders, restaurants } = useStore();
+  const activeRestaurant = restaurants.find(r => r.id === activeRestaurantId);
+  const isHotel = activeRestaurant?.businessType === 'hotel';
+  const tableLabel = isHotel ? 'Room Number' : 'Table Number';
+  const tablePlaceholder = isHotel ? 'e.g. 205' : 'e.g. 5';
 
   const [activeTable, setActiveTable] = useState<string>('');
   const [showBill, setShowBill] = useState(false);
@@ -463,6 +467,7 @@ const CustomerView: React.FC = () => {
                     <label className="block text-sm font-medium text-slate-700 mb-1">Order Type</label>
                     <div className="flex flex-wrap gap-2">
                       {['dine-in', 'takeaway', 'delivery'].filter(type => {
+                        if (isHotel) return type === 'dine-in'; // Hotels: only room service
                         if (type === 'dine-in') return settings.orderPreferences?.dineIn ?? true;
                         if (type === 'takeaway') return settings.orderPreferences?.takeaway ?? true;
                         if (type === 'delivery') return settings.orderPreferences?.delivery ?? true;
@@ -473,7 +478,7 @@ const CustomerView: React.FC = () => {
                           onClick={() => setOrderType(type as OrderType)}
                           className={`flex-1 py-2 px-1 rounded-lg text-xs font-semibold capitalize border transition-all ${orderType === type ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'}`}
                         >
-                          {type.replace('-', ' ')}
+                          {isHotel && type === 'dine-in' ? 'Room Service' : type.replace('-', ' ')}
                         </button>
                       ))}
                     </div>
@@ -507,13 +512,13 @@ const CustomerView: React.FC = () => {
                       {orderType === 'dine-in' && !(settings.orderPreferences?.requireTableNumber ?? true) ? null : (
                         <>
                           <label className="block text-sm font-medium text-slate-700 mb-1">
-                            {orderType === 'dine-in' ? 'Table Number' : 'Delivery Address'}
+                            {orderType === 'dine-in' ? tableLabel : 'Delivery Address'}
                           </label>
                           <input
                             type="text"
                             value={tableOrAddress}
                             onChange={(e) => setTableOrAddress(e.target.value)}
-                            placeholder={orderType === 'dine-in' ? "e.g. 5" : "Full address"}
+                            placeholder={orderType === 'dine-in' ? tablePlaceholder : "Full address"}
                             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
                           />
                         </>

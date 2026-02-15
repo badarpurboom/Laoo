@@ -1,7 +1,7 @@
 
 import { Order, RestaurantSettings } from '../types';
 
-export const printKOT = (order: Order, settings: RestaurantSettings) => {
+export const printKOT = (order: Order, settings: RestaurantSettings, businessType?: string) => {
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     alert("Please allow popups to print KOT");
@@ -54,8 +54,8 @@ export const printKOT = (order: Order, settings: RestaurantSettings) => {
           <div class="title">${settings.name}</div>
           <div class="meta">Date: ${dateString} | Time: ${timeString}</div>
           <div class="meta">Order ID: #${order.id.slice(-6)}</div>
-          <div class="type-tag">${order.orderType.toUpperCase()}</div>
-          ${order.tableNumber ? `<div style="font-size: 14px; font-weight: bold; margin-top: 5px;">Table: ${order.tableNumber}</div>` : ''}
+          <div class="type-tag">${businessType === 'hotel' && order.orderType === 'dine-in' ? 'ROOM SERVICE' : order.orderType.toUpperCase()}</div>
+          ${order.tableNumber ? `<div style="font-size: 14px; font-weight: bold; margin-top: 5px;">${businessType === 'hotel' ? 'Room' : 'Table'}: ${order.tableNumber}</div>` : ''}
           <div style="font-size: 14px; font-weight: bold; margin-top: 5px;">${order.customerName}</div>
           ${order.orderType === 'delivery' && order.address ? `
             <div style="font-size: 11px; margin-top: 4px; padding: 4px 6px; border: 1px dashed #000; border-radius: 4px;">

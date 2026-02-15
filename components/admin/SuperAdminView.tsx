@@ -36,6 +36,7 @@ const SuperAdminView: React.FC = () => {
         ownerName: '',
         email: '',
         phone: '',
+        businessType: 'restaurant' as string,
     });
     const [generatedPassword, setGeneratedPassword] = useState('');
 
@@ -107,14 +108,22 @@ const SuperAdminView: React.FC = () => {
                 slug: generateSlug(newRestaurant.name),
                 isActive: true,
                 username,
-                password
+                password,
+                // Hotels: only dine-in by default
+                ...(newRestaurant.businessType === 'hotel' ? {
+                    dineInEnabled: true,
+                    takeawayEnabled: false,
+                    deliveryEnabled: false,
+                    requireTableNumber: true,
+                } : {})
             };
             await addRestaurant(restaurantData as any);
             setShowModal(false);
-            setNewRestaurant({ name: '', ownerName: '', email: '', phone: '' });
+            setNewRestaurant({ name: '', ownerName: '', email: '', phone: '', businessType: 'restaurant' });
             setGeneratedPassword('');
             loadStats();
-            alert(`Restaurant Created!\nUsername: ${username}\nPassword: ${password}\n\n10-day free trial activated!`);
+            const typeLabel = newRestaurant.businessType === 'hotel' ? 'Hotel' : 'Restaurant';
+            alert(`${typeLabel} Created!\nUsername: ${username}\nPassword: ${password}\n\n10-day free trial activated!`);
         } catch (err: any) {
             console.error(err);
             setError(err.response?.data?.error || 'Failed to create restaurant.');
@@ -294,7 +303,12 @@ const SuperAdminView: React.FC = () => {
                             <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                                 <div className="p-4 border-b border-slate-50 flex justify-between items-start">
                                     <div>
-                                        <h3 className="font-bold text-slate-800">{res.name}</h3>
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                            {res.name}
+                                            {(res as any).businessType === 'hotel' && (
+                                                <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[9px] font-bold rounded-full"><i className="fas fa-hotel mr-0.5"></i>Hotel</span>
+                                            )}
+                                        </h3>
                                         <p className="text-xs text-slate-400">{res.email}</p>
                                     </div>
                                     <div className="flex flex-col items-end gap-1">
@@ -389,7 +403,12 @@ const SuperAdminView: React.FC = () => {
                                 return (
                                     <tr key={res.id} className={`hover:bg-slate-50/50 transition-colors ${daysLeft <= 0 && (res as any).trialEndDate ? 'bg-red-50/30' : ''}`}>
                                         <td className="px-5 py-4">
-                                            <div className="font-bold text-slate-800">{res.name}</div>
+                                            <div className="font-bold text-slate-800 flex items-center gap-2">
+                                                {res.name}
+                                                {(res as any).businessType === 'hotel' && (
+                                                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[9px] font-bold rounded-full"><i className="fas fa-hotel mr-0.5"></i>Hotel</span>
+                                                )}
+                                            </div>
                                             <div className="text-xs text-slate-400">{res.email}</div>
                                         </td>
                                         <td className="px-5 py-4">
@@ -513,7 +532,25 @@ const SuperAdminView: React.FC = () => {
                                 </div>
                             )}
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1 tracking-wider">Restaurant Name</label>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider">Business Type</label>
+                                <div className="flex gap-2">
+                                    {[{ type: 'restaurant', label: 'Restaurant', icon: 'fa-utensils' }, { type: 'hotel', label: 'Hotel', icon: 'fa-hotel' }].map(opt => (
+                                        <button
+                                            key={opt.type}
+                                            type="button"
+                                            onClick={() => setNewRestaurant({ ...newRestaurant, businessType: opt.type })}
+                                            className={`flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 border transition-all ${newRestaurant.businessType === opt.type
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200'
+                                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-indigo-300'
+                                                }`}
+                                        >
+                                            <i className={`fas ${opt.icon}`}></i> {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-1 tracking-wider">{newRestaurant.businessType === 'hotel' ? 'Hotel Name' : 'Restaurant Name'}</label>
                                 <input required type="text" value={newRestaurant.name} onChange={e => setNewRestaurant({ ...newRestaurant, name: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm" />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
@@ -540,7 +577,7 @@ const SuperAdminView: React.FC = () => {
                                 disabled={isSubmitting}
                                 className={`w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 text-sm ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                {isSubmitting ? <><i className="fas fa-spinner fa-spin"></i> Creating...</> : 'Create Restaurant'}
+                                {isSubmitting ? <><i className="fas fa-spinner fa-spin"></i> Creating...</> : `Create ${newRestaurant.businessType === 'hotel' ? 'Hotel' : 'Restaurant'}`}
                             </button>
                         </form>
                     </div>

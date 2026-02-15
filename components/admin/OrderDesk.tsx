@@ -6,7 +6,10 @@ import { OrderStatus } from '../../types';
 import { printKOT } from '../../utils/printKOT';
 
 const OrderDesk: React.FC = () => {
-  const { orders, updateOrderStatus, updatePaymentStatus, activeRestaurantId, settings, fetchDashboardData } = useStore();
+  const { orders, updateOrderStatus, updatePaymentStatus, activeRestaurantId, settings, fetchDashboardData, restaurants } = useStore();
+  const activeRestaurant = restaurants.find(r => r.id === activeRestaurantId);
+  const isHotel = activeRestaurant?.businessType === 'hotel';
+  const unitLabel = isHotel ? 'Room' : 'Table';
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [lastUpdated, setLastUpdated] = React.useState(new Date());
   const [audioEnabled, setAudioEnabled] = React.useState(true);
@@ -93,7 +96,7 @@ const OrderDesk: React.FC = () => {
     if (order.orderType === 'takeaway') {
       action = 'pack kar do';
     } else if (order.orderType === 'dine-in') {
-      action = order.tableNumber ? `table ${order.tableNumber} par laga do` : 'laga do';
+      action = order.tableNumber ? `${isHotel ? 'room' : 'table'} ${order.tableNumber} par laga do` : 'laga do';
     } else if (order.orderType === 'delivery') {
       action = 'deliver karne ke liye taiyar karo';
     }
@@ -223,7 +226,7 @@ const OrderDesk: React.FC = () => {
 
                 <div className="flex justify-end mb-2">
                   <button
-                    onClick={(e) => { e.stopPropagation(); printKOT(order, settings); }}
+                    onClick={(e) => { e.stopPropagation(); printKOT(order, settings, activeRestaurant?.businessType); }}
                     className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded flex items-center gap-1 transition-colors"
                     title="Print KOT"
                   >
@@ -294,7 +297,7 @@ const OrderDesk: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <h4 className="font-bold">{order.id}</h4>
                       <button
-                        onClick={(e) => { e.stopPropagation(); printKOT(order, settings); }}
+                        onClick={(e) => { e.stopPropagation(); printKOT(order, settings, activeRestaurant?.businessType); }}
                         className="bg-white/50 hover:bg-white text-slate-700 px-2 py-1 rounded text-[10px] font-bold transition-colors flex items-center gap-1"
                         title="Print KOT"
                       >
@@ -434,7 +437,7 @@ const OrderDesk: React.FC = () => {
                         {table.tableNumber}
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-800">Table {table.tableNumber}</h4>
+                        <h4 className="font-bold text-slate-800">{unitLabel} {table.tableNumber}</h4>
                         <p className="text-xs text-slate-500">{table.customerName}</p>
                       </div>
                     </div>
@@ -460,7 +463,7 @@ const OrderDesk: React.FC = () => {
                           tableNumber: table.tableNumber,
                           paymentStatus: 'pending'
                         };
-                        printKOT(aggregatedOrder, settings);
+                        printKOT(aggregatedOrder, settings, activeRestaurant?.businessType);
                       }}
                       className="text-xs font-bold text-orange-600 hover:text-orange-800 flex items-center gap-1"
                     >
@@ -492,7 +495,7 @@ const OrderDesk: React.FC = () => {
                   <div className="p-4 bg-orange-50/50 border-t border-orange-100">
                     <button
                       onClick={async () => {
-                        if (window.confirm(`Settle bill for Table ${table.tableNumber}? Total: ₹${table.totalAmount}`)) {
+                        if (window.confirm(`Settle bill for ${unitLabel} ${table.tableNumber}? Total: ₹${table.totalAmount}`)) {
                           await Promise.all(table.orders.map(async (order: any) => {
                             await updateOrderStatus(order.id, 'delivered');
                             await updatePaymentStatus(order.id, 'paid');
@@ -514,8 +517,8 @@ const OrderDesk: React.FC = () => {
                   <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-200">
                     <i className="fas fa-chair text-3xl"></i>
                   </div>
-                  <h3 className="text-slate-500 font-medium">No active tables</h3>
-                  <p className="text-sm text-slate-400">Dine-in orders will appear here.</p>
+                  <h3 className="text-slate-500 font-medium">No active {isHotel ? 'rooms' : 'tables'}</h3>
+                  <p className="text-sm text-slate-400">{isHotel ? 'Room service' : 'Dine-in'} orders will appear here.</p>
                 </div>
               )}
             </div>
