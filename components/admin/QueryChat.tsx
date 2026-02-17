@@ -23,7 +23,7 @@ const QueryChat: React.FC = () => {
         {
             id: 'welcome',
             type: 'system',
-            content: 'Welcome to the Database Query Console. Use the quick queries below or write your own SELECT query to explore your data.',
+            content: '⚠️ Database Query Console - FULL ACCESS MODE. You can execute any SQL query including DELETE, UPDATE, INSERT. Use with caution!',
             timestamp: new Date()
         }
     ]);
@@ -32,6 +32,8 @@ const QueryChat: React.FC = () => {
     const [predefinedQueries, setPredefinedQueries] = useState<PredefinedQuery[]>([]);
     const [showSchema, setShowSchema] = useState(false);
     const [schema, setSchema] = useState('');
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [pendingQuery, setPendingQuery] = useState<{ sql: string; label?: string } | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,6 +48,12 @@ const QueryChat: React.FC = () => {
 
     const addMessage = (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => {
         setMessages(prev => [...prev, { ...msg, id: Date.now().toString(), timestamp: new Date() }]);
+    };
+
+    const isDestructiveQuery = (sql: string): boolean => {
+        const upper = sql.toUpperCase().trim();
+        const destructiveKeywords = ['DELETE', 'UPDATE', 'DROP', 'TRUNCATE', 'ALTER', 'INSERT'];
+        return destructiveKeywords.some(keyword => upper.includes(keyword));
     };
 
     const executeQuery = async (queryKey?: string, customSql?: string, label?: string) => {
@@ -86,15 +94,28 @@ const QueryChat: React.FC = () => {
         const userInput = input.trim();
         setInput('');
 
-        // Only accept SQL queries (SELECT or WITH)
-        if (userInput.toUpperCase().startsWith('SELECT') || userInput.toUpperCase().startsWith('WITH')) {
-            executeQuery(undefined, userInput);
-        } else {
-            addMessage({
-                type: 'error',
-                content: '⚠️ Only SELECT queries are allowed. Start your query with SELECT or WITH.'
-            });
+        // Check if this is a destructive query (DELETE, UPDATE, etc.)
+        if (isDestructiveQuery(userInput)) {
+            setPendingQuery({ sql: userInput });
+            setShowConfirmation(true);
+            return;
         }
+
+        // Execute non-destructive queries directly
+        executeQuery(undefined, userInput);
+    };
+
+    const confirmAndExecute = () => {
+        if (pendingQuery) {
+            executeQuery(undefined, pendingQuery.sql, pendingQuery.label);
+            setShowConfirmation(false);
+            setPendingQuery(null);
+        }
+    };
+
+    const cancelExecution = () => {
+        setShowConfirmation(false);
+        setPendingQuery(null);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -283,7 +304,7 @@ const QueryChat: React.FC = () => {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder='Type a SELECT query... e.g. SELECT * FROM "Restaurant" LIMIT 5'
+                            placeholder='Type any SQL query... SELECT, DELETE, UPDATE, INSERT, etc.'
                             className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 font-mono focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none resize-none"
                             rows={2}
                             disabled={isLoading}
@@ -301,10 +322,55 @@ const QueryChat: React.FC = () => {
                         Run
                     </button>
                 </div>
-                <p className="text-[10px] text-slate-600 mt-2 text-center">
-                    🔒 Read-only mode · Only SELECT queries allowed · No data can be modified
+                <p className="text-[10px] text-red-400 mt-2 text-center font-bold">
+                    ⚠️ FULL ACCESS · All SQL operations allowed · Destructive queries require confirmation
                 </p>
             </form>
+
+            {/* Confirmation Modal for Destructive Queries */}
+            {showConfirmation && pendingQuery && (
+                <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-slate-800 border-2 border-red-500 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-pulse-once">
+                        <div className="p-6 bg-red-500/10 border-b border-red-500/30">
+                            <div className="flex items-center gap-3">
+                                <i className="fas fa-exclamation-triangle text-3xl text-red-400"></i>
+                                <div>
+                                    <h3 className="text-lg font-black text-red-400">DESTRUCTIVE QUERY WARNING</h3>
+                                    <p className="text-xs text-slate-400">This action cannot be undone!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
+                                <p className="text-xs text-slate-500 mb-2 font-bold">QUERY TO EXECUTE:</p>
+                                <pre className="text-sm text-red-300 font-mono whitespace-pre-wrap break-words">{pendingQuery.sql}</pre>
+                            </div>
+                            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                                <p className="text-xs text-yellow-300 font-medium">
+                                    <i className="fas fa-shield-alt mr-2"></i>
+                                    Are you absolutely sure you want to execute this query? This may permanently modify or delete data from your database.
+                                </p>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={cancelExecution}
+                                    className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-all"
+                                >
+                                    <i className="fas fa-times mr-2"></i>
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmAndExecute}
+                                    className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-500/20"
+                                >
+                                    <i className="fas fa-check mr-2"></i>
+                                    Execute Anyway
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

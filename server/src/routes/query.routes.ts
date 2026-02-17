@@ -4,36 +4,12 @@ import { Prisma } from '@prisma/client';
 
 const router = Router();
 
-// ===== HARDCODED SAFETY: READ-ONLY QUERIES ONLY =====
-// This endpoint ONLY allows SELECT queries.
-// Any INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, etc. are BLOCKED.
-
-const BLOCKED_KEYWORDS = [
-    'INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'TRUNCATE',
-    'GRANT', 'REVOKE', 'EXEC', 'EXECUTE', 'MERGE', 'REPLACE',
-    'CALL', 'SET ', 'COMMIT', 'ROLLBACK', 'SAVEPOINT',
-    'LOCK', 'UNLOCK', 'RENAME', 'VACUUM', 'REINDEX',
-    'COPY', 'LOAD', 'UNLOAD', 'IMPORT', 'EXPORT',
-    'BEGIN', 'START TRANSACTION', 'END TRANSACTION',
-    'PREPARE', 'DEALLOCATE', 'DISCARD', 'LISTEN', 'NOTIFY',
-    'pg_', 'information_schema', '--', ';DROP', '; DROP',
-];
+// ===== MINIMAL SAFETY: QUERY CHAINING PREVENTION =====
+// This endpoint allows ALL SQL queries (SELECT, INSERT, UPDATE, DELETE, etc.)
+// ONLY blocks semicolons to prevent query chaining
+// ⚠️ DANGER: Full database access enabled for Super Admin
 
 function isSafeQuery(sql: string): { safe: boolean; reason?: string } {
-    const upper = sql.toUpperCase().trim();
-
-    // Must start with SELECT or WITH (for CTEs)
-    if (!upper.startsWith('SELECT') && !upper.startsWith('WITH')) {
-        return { safe: false, reason: 'Query must start with SELECT' };
-    }
-
-    // Check for blocked keywords
-    for (const keyword of BLOCKED_KEYWORDS) {
-        if (upper.includes(keyword.toUpperCase())) {
-            return { safe: false, reason: `Blocked keyword detected: ${keyword}` };
-        }
-    }
-
     // No semicolons allowed (prevents query chaining)
     if (sql.includes(';')) {
         return { safe: false, reason: 'Semicolons not allowed (prevents query chaining)' };
@@ -150,7 +126,7 @@ router.post('/execute', async (req, res) => {
         const safety = isSafeQuery(sql);
         if (!safety.safe) {
             return res.status(403).json({
-                error: `🚫 BLOCKED: ${safety.reason}. Only SELECT queries are allowed.`,
+                error: `🚫 BLOCKED: ${safety.reason}`,
                 sql
             });
         }
