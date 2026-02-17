@@ -258,12 +258,68 @@ const SuperAdminView: React.FC = () => {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
                 {activeView === 'database' ? (
-                    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
-                        <iframe
-                            src="https://laoo.online/db-admin/?pgsql=localhost&username=postgres"
-                            className="w-full h-full border-0"
-                            title="Database Manager"
-                        />
+                    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 flex flex-col items-center justify-center space-y-6" style={{ minHeight: 'calc(100vh - 200px)' }}>
+                        <div className="text-center space-y-2">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i className="fas fa-database text-2xl text-blue-600"></i>
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800">Database Manager</h2>
+                            <p className="text-slate-500 max-w-md mx-auto">
+                                Manage your database directly using Adminer. For security reasons, please open it in a new tab.
+                            </p>
+                        </div>
+
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 w-full max-w-lg space-y-4">
+                            <h3 className="font-bold text-slate-700 border-b border-slate-200 pb-2 mb-2">
+                                <i className="fas fa-key mr-2 text-slate-400"></i>
+                                Login Credentials
+                            </h3>
+
+                            <div className="grid grid-cols-[100px_1fr] gap-4 items-center text-sm">
+                                <span className="text-slate-500 font-medium">System:</span>
+                                <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">PostgreSQL</span>
+
+                                <span className="text-slate-500 font-medium">Server:</span>
+                                <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">localhost</span>
+
+                                <span className="text-slate-500 font-medium">Username:</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200 flex-1">bistro_user</span>
+                                    <button
+                                        onClick={() => navigator.clipboard.writeText('bistro_user')}
+                                        className="text-blue-600 hover:text-blue-700 text-xs"
+                                        title="Copy Username"
+                                    >
+                                        <i className="far fa-copy"></i>
+                                    </button>
+                                </div>
+
+                                <span className="text-slate-500 font-medium">Password:</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200 flex-1">secure_password_here</span>
+                                    <button
+                                        onClick={() => navigator.clipboard.writeText('secure_password_here')}
+                                        className="text-blue-600 hover:text-blue-700 text-xs"
+                                        title="Copy Password"
+                                    >
+                                        <i className="far fa-copy"></i>
+                                    </button>
+                                </div>
+
+                                <span className="text-slate-500 font-medium">Database:</span>
+                                <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">bistro_db</span>
+                            </div>
+                        </div>
+
+                        <a
+                            href="https://laoo.online/db-admin/?pgsql=localhost&username=bistro_user&db=bistro_db"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center gap-3 transform hover:scale-105"
+                        >
+                            <i className="fas fa-external-link-alt"></i>
+                            Open Database Manager
+                        </a>
                     </div>
                 ) : (
                     <>
