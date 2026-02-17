@@ -260,7 +260,7 @@ const SuperAdminView: React.FC = () => {
                 {activeView === 'database' ? (
                     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
                         <iframe
-                            src="http://93.127.206.108:8080/adminer.php?pgsql=localhost&username=postgres"
+                            src="https://laoo.online/db-admin/?pgsql=localhost&username=postgres"
                             className="w-full h-full border-0"
                             title="Database Manager"
                         />
