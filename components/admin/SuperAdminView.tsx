@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Restaurant } from '../../types';
 import { restaurantService } from '../../services/api';
-import QueryChat from './QueryChat';
 
 const SuperAdminView: React.FC = () => {
     const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant, fetchDashboardData } = useStore();
@@ -17,7 +16,7 @@ const SuperAdminView: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'expired'>('all');
     const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
     const [stats, setStats] = useState({ totalRestaurants: 0, activeRestaurants: 0, totalOrders: 0, totalRevenue: 0 });
-    const [activeView, setActiveView] = useState<'restaurants' | 'query'>('restaurants');
+    const [activeView, setActiveView] = useState<'restaurants' | 'database'>('restaurants');
 
     useEffect(() => {
         fetchDashboardData();
@@ -241,11 +240,11 @@ const SuperAdminView: React.FC = () => {
                             <i className="fas fa-sign-out-alt mr-1"></i> Logout
                         </button>
                         <button
-                            onClick={() => setActiveView(activeView === 'query' ? 'restaurants' : 'query')}
-                            className={`px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all text-sm ${activeView === 'query' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'}`}
+                            onClick={() => setActiveView(activeView === 'database' ? 'restaurants' : 'database')}
+                            className={`px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all text-sm ${activeView === 'database' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'}`}
                         >
-                            <i className="fas fa-terminal text-xs"></i>
-                            {activeView === 'query' ? 'Back to List' : 'Query Console'}
+                            <i className="fas fa-database text-xs"></i>
+                            {activeView === 'database' ? 'Back to List' : 'Database Manager'}
                         </button>
                         <button
                             onClick={() => setShowModal(true)}
@@ -258,8 +257,14 @@ const SuperAdminView: React.FC = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-                {activeView === 'query' ? (
-                    <QueryChat />
+                {activeView === 'database' ? (
+                    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+                        <iframe
+                            src="http://93.127.206.108:8080/adminer.php?pgsql=localhost&username=postgres"
+                            className="w-full h-full border-0"
+                            title="Database Manager"
+                        />
+                    </div>
                 ) : (
                     <>
                         {/* Stats Cards */}
