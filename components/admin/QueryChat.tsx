@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { queryService } from '../../services/api';
-import { generateSqlFromText } from '../../services/aiService';
-import { useStore } from '../../store';
 
 interface ChatMessage {
     id: string;
@@ -36,7 +34,6 @@ const QueryChat: React.FC = () => {
     const [schema, setSchema] = useState('');
     const chatEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
-    const { aiConfig } = useStore();
 
     useEffect(() => {
         queryService.getPredefined().then(res => setPredefinedQueries(res.data));
@@ -89,50 +86,14 @@ const QueryChat: React.FC = () => {
         const userInput = input.trim();
         setInput('');
 
-        // 1. If input is clearly SQL, execute directly
+        // Only accept SQL queries (SELECT or WITH)
         if (userInput.toUpperCase().startsWith('SELECT') || userInput.toUpperCase().startsWith('WITH')) {
             executeQuery(undefined, userInput);
-            return;
-        }
-
-        // 2. Otherwise treat as Natural Language -> AI
-        if (!aiConfig.apiKey) {
+        } else {
             addMessage({
                 type: 'error',
-                content: '⚠️ AI API Key is missing. Please configure it in Settings tab.'
+                content: '⚠️ Only SELECT queries are allowed. Start your query with SELECT or WITH.'
             });
-            return;
-        }
-
-        setIsLoading(true);
-        addMessage({ type: 'user', content: userInput });
-
-        // Show thinking state
-        const thinkingId = 'thinking-' + Date.now();
-        setMessages(prev => [...prev, {
-            id: thinkingId,
-            type: 'system',
-            content: '🤔 Analyzing schema and generating SQL...',
-            timestamp: new Date()
-        }]);
-
-        try {
-            const aiResult = await generateSqlFromText(userInput, schema, aiConfig.apiKey, aiConfig.provider);
-
-            // Remove thinking message
-            setMessages(prev => prev.filter(m => m.id !== thinkingId));
-
-            if (aiResult.error) {
-                addMessage({ type: 'error', content: `AI Error: ${aiResult.error}` });
-            } else if (aiResult.sql) {
-                // Execute generated SQL
-                await executeQuery(undefined, aiResult.sql, `🤖 AI: ${userInput}`);
-            }
-        } catch (err: any) {
-            setMessages(prev => prev.filter(m => m.id !== thinkingId));
-            addMessage({ type: 'error', content: 'AI processing failed' });
-        } finally {
-            setIsLoading(false);
         }
     };
 
