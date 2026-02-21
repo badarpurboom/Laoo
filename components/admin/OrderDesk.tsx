@@ -22,37 +22,53 @@ const OrderDesk: React.FC = () => {
 
   // Browser TTS Only
   const playVoiceAnnouncement = (text: string) => {
-    if (!audioEnabled) return;
+    if (!audioEnabled || !window.speechSynthesis) return;
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn("TTS Error:", err);
     }
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    window.speechSynthesis.speak(utterance);
   };
 
   // Load Browser Voices
   React.useEffect(() => {
     const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      // Prioritize Indian English or Hindi voices for natural Indian accent
-      const preferredVoice = voices.find(v =>
-        v.lang === 'hi-IN' ||
-        v.lang === 'en-IN' ||
-        v.name.includes('Google हिन्दी') ||
-        v.name.includes('India')
-      ) || voices.find(v => v.name.includes('Google') && v.lang.includes('en-US'));
+      if (!window.speechSynthesis) return;
 
-      if (preferredVoice) {
-        setSelectedVoice(preferredVoice);
+      try {
+        const voices = window.speechSynthesis.getVoices();
+        // Prioritize Indian English or Hindi voices for natural Indian accent
+        const preferredVoice = voices.find(v =>
+          v.lang === 'hi-IN' ||
+          v.lang === 'en-IN' ||
+          v.name.includes('Google हिन्दी') ||
+          v.name.includes('India')
+        ) || voices.find(v => v.name.includes('Google') && v.lang.includes('en-US'));
+
+        if (preferredVoice) {
+          setSelectedVoice(preferredVoice);
+        }
+      } catch (err) {
+        console.warn("Voice load error:", err);
       }
     };
 
     loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
   }, []);
 
   // Handle Restaurant Switching (Reset tracker)
@@ -171,7 +187,6 @@ const OrderDesk: React.FC = () => {
 
   return (
     <div className="space-y-6 relative">
-// This line is removed to fix duplication
       <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
