@@ -101,11 +101,30 @@ router.patch('/:id/trial', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        // Sanitize body to remove non-updatable fields like _count, createdAt, etc.
+        const {
+            _count, createdAt, updatedAt, trialEndDate, id: bodyId,
+            categories, menuItems, orders, ...updateData
+        } = req.body;
+
         const restaurant = await prisma.restaurant.update({
             where: { id },
-            data: req.body
+            data: updateData
         });
         res.json(restaurant);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete restaurant
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.restaurant.delete({
+            where: { id }
+        });
+        res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }

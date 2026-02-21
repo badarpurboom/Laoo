@@ -185,100 +185,101 @@ const MenuManager: React.FC = () => {
       {/* Item Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b flex justify-between items-center bg-slate-50">
-              <h3 className="text-xl font-bold text-slate-800">{editingItem ? 'Edit Menu Item' : 'New Menu Item'}</h3>
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-4 py-3 border-b flex justify-between items-center bg-slate-50">
+              <h3 className="text-sm font-bold text-slate-800">{editingItem ? 'Edit Item' : 'New Item'}</h3>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
-                <i className="fas fa-times text-xl"></i>
+                <i className="fas fa-times text-sm"></i>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-3 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="col-span-2">
                   <ImageUploader
                     currentImage={formData.imageUrl}
                     onImageUploaded={(url) => setFormData({ ...formData, imageUrl: url })}
                     label="Item Image"
+                    className="h-24"
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Item Name</label>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Name</label>
                   <input
                     required
                     type="text"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Full Price (₹)*</label>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Full Price (₹)*</label>
                   <input
                     required
                     type="number"
                     value={formData.fullPrice}
                     onChange={e => setFormData({ ...formData, fullPrice: parseFloat(e.target.value) })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Half Price (₹)</label>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Half Price (₹)</label>
                   <input
                     type="number"
                     value={formData.halfPrice || ''}
                     onChange={e => setFormData({ ...formData, halfPrice: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Category</label>
+                <div className="col-span-2">
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Category</label>
                   <select
                     required
                     value={formData.categoryId}
                     onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-xs"
                   >
                     <option value="">Select Category</option>
                     {tenantCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Description</label>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-0.5">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none h-20"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none h-10 text-xs"
                   ></textarea>
                 </div>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="flex items-center gap-3 col-span-2 py-1">
+                  <label className="flex items-center gap-1.5 cursor-pointer bg-slate-50 px-2 py-1 rounded border border-slate-100">
                     <input
                       type="checkbox"
                       checked={formData.isVeg}
                       onChange={e => setFormData({ ...formData, isVeg: e.target.checked })}
-                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                      className="w-3 h-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                     />
-                    <span className="text-sm font-medium text-slate-700">Veg</span>
+                    <span className="text-[10px] font-bold text-slate-700">VEG</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-1.5 cursor-pointer bg-slate-50 px-2 py-1 rounded border border-slate-100">
                     <input
                       type="checkbox"
                       checked={formData.isAvailable}
                       onChange={e => setFormData({ ...formData, isAvailable: e.target.checked })}
-                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                      className="w-3 h-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                     />
-                    <span className="text-sm font-medium text-slate-700">Available</span>
+                    <span className="text-[10px] font-bold text-slate-700">AVAILABLE</span>
                   </label>
                 </div>
               </div>
-              <div className="pt-4 flex gap-3">
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50">Cancel</button>
+              <div className="pt-1 flex gap-2">
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-1.5 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 text-xs">Cancel</button>
                 <button
                   type="submit"
                   disabled={isSubmittingItem}
-                  className={`flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 ${isSubmittingItem ? 'opacity-50' : ''}`}
+                  className={`flex-1 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-md shadow-indigo-100 flex items-center justify-center gap-2 text-xs ${isSubmittingItem ? 'opacity-50' : ''}`}
                 >
-                  {isSubmittingItem ? <i className="fas fa-spinner fa-spin"></i> : (editingItem ? 'Save Changes' : 'Create Item')}
+                  {isSubmittingItem ? <i className="fas fa-spinner fa-spin"></i> : (editingItem ? 'Save' : 'Create')}
                 </button>
               </div>
             </form>

@@ -1,12 +1,14 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Restaurant } from '../../types';
 import { restaurantService } from '../../services/api';
+import MasterAIChat from './MasterAIChat';
 
 const SuperAdminView: React.FC = () => {
     const { restaurants, addRestaurant, updateRestaurant, deleteRestaurant, fetchDashboardData } = useStore();
     const [showModal, setShowModal] = useState(false);
+    const [showAI, setShowAI] = useState(false);
     const [editModal, setEditModal] = useState<Restaurant | null>(null);
     const [trialModal, setTrialModal] = useState<Restaurant | null>(null);
     const [trialDays, setTrialDays] = useState(10);
@@ -16,7 +18,6 @@ const SuperAdminView: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'expired'>('all');
     const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
     const [stats, setStats] = useState({ totalRestaurants: 0, activeRestaurants: 0, totalOrders: 0, totalRevenue: 0 });
-    const [activeView, setActiveView] = useState<'restaurants' | 'database'>('restaurants');
 
     useEffect(() => {
         fetchDashboardData();
@@ -231,6 +232,12 @@ const SuperAdminView: React.FC = () => {
                             <i className="fas fa-sync-alt text-sm"></i>
                         </button>
                         <button
+                            onClick={() => setShowAI(true)}
+                            className="bg-white text-indigo-600 border border-indigo-100 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-50 transition-all shadow-sm text-sm"
+                        >
+                            <i className="fas fa-brain"></i> Master AI
+                        </button>
+                        <button
                             onClick={() => {
                                 useStore.getState().setCurrentUser(null);
                                 window.location.hash = '#/login';
@@ -238,13 +245,6 @@ const SuperAdminView: React.FC = () => {
                             className="text-slate-500 hover:text-red-500 font-bold text-sm px-3 py-2 rounded-lg hover:bg-red-50 transition-all"
                         >
                             <i className="fas fa-sign-out-alt mr-1"></i> Logout
-                        </button>
-                        <button
-                            onClick={() => setActiveView(activeView === 'database' ? 'restaurants' : 'database')}
-                            className={`px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all text-sm ${activeView === 'database' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'}`}
-                        >
-                            <i className="fas fa-database text-xs"></i>
-                            {activeView === 'database' ? 'Back to List' : 'Database Manager'}
                         </button>
                         <button
                             onClick={() => setShowModal(true)}
@@ -257,337 +257,269 @@ const SuperAdminView: React.FC = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-                {activeView === 'database' ? (
-                    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 flex flex-col items-center justify-center space-y-6" style={{ minHeight: 'calc(100vh - 200px)' }}>
-                        <div className="text-center space-y-2">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i className="fas fa-database text-2xl text-blue-600"></i>
-                            </div>
-                            <h2 className="text-2xl font-bold text-slate-800">Database Manager</h2>
-                            <p className="text-slate-500 max-w-md mx-auto">
-                                Manage your database directly using Adminer. For security reasons, please open it in a new tab.
-                            </p>
-                        </div>
-
-                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 w-full max-w-lg space-y-4">
-                            <h3 className="font-bold text-slate-700 border-b border-slate-200 pb-2 mb-2">
-                                <i className="fas fa-key mr-2 text-slate-400"></i>
-                                Login Credentials
-                            </h3>
-
-                            <div className="grid grid-cols-[100px_1fr] gap-4 items-center text-sm">
-                                <span className="text-slate-500 font-medium">System:</span>
-                                <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">PostgreSQL</span>
-
-                                <span className="text-slate-500 font-medium">Server:</span>
-                                <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">localhost</span>
-
-                                <span className="text-slate-500 font-medium">Username:</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200 flex-1">bistro_user</span>
-                                    <button
-                                        onClick={() => navigator.clipboard.writeText('bistro_user')}
-                                        className="text-blue-600 hover:text-blue-700 text-xs"
-                                        title="Copy Username"
-                                    >
-                                        <i className="far fa-copy"></i>
-                                    </button>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {statCards.map((stat, i) => (
+                        <div key={i} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center`}>
+                                    <i className={`${stat.icon} text-sm bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}></i>
                                 </div>
-
-                                <span className="text-slate-500 font-medium">Password:</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200 flex-1">secure_password_here</span>
-                                    <button
-                                        onClick={() => navigator.clipboard.writeText('secure_password_here')}
-                                        className="text-blue-600 hover:text-blue-700 text-xs"
-                                        title="Copy Password"
-                                    >
-                                        <i className="far fa-copy"></i>
-                                    </button>
-                                </div>
-
-                                <span className="text-slate-500 font-medium">Database:</span>
-                                <span className="font-mono bg-white px-2 py-1 rounded border border-slate-200">bistro_db</span>
                             </div>
+                            <div className="text-2xl font-black text-slate-800">{stat.value}</div>
+                            <div className="text-xs font-medium text-slate-400 mt-1">{stat.label}</div>
                         </div>
+                    ))}
+                </div>
 
-                        <a
-                            href="https://laoo.online/db-admin/?pgsql=localhost&username=bistro_user&db=bistro_db"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center gap-3 transform hover:scale-105"
-                        >
-                            <i className="fas fa-external-link-alt"></i>
-                            Open Database Manager
-                        </a>
+                {/* Search & Filter Bar */}
+                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <div className="relative flex-1 w-full">
+                        <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                        <input
+                            type="text"
+                            placeholder="Search by name, owner, email, phone..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
                     </div>
-                ) : (
-                    <>
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                            {statCards.map((stat, i) => (
-                                <div key={i} className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center`}>
-                                            <i className={`${stat.icon} text-sm bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}></i>
-                                        </div>
+                    <div className="flex items-center gap-2">
+                        {(['all', 'active', 'inactive', 'expired'] as const).map(status => (
+                            <button
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                className={`px-3 py-2 rounded-lg text-xs font-bold capitalize transition-all ${statusFilter === status
+                                    ? 'bg-indigo-600 text-white shadow-md'
+                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                    }`}
+                            >
+                                {status}{status === 'expired' && expiredCount > 0 ? ` (${expiredCount})` : ''}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="text-xs text-slate-400 font-medium whitespace-nowrap">
+                        {filteredRestaurants.length} of {restaurants.length}
+                    </div>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="block lg:hidden space-y-4">
+                    {filteredRestaurants.map(res => {
+                        const trialBadge = getTrialBadge(res);
+                        return (
+                            <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <div className="p-4 border-b border-slate-50 flex justify-between items-start">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                            {res.name}
+                                            {(res as any).businessType === 'hotel' && (
+                                                <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[9px] font-bold rounded-full"><i className="fas fa-hotel mr-0.5"></i>Hotel</span>
+                                            )}
+                                        </h3>
+                                        <p className="text-xs text-slate-400">{res.email}</p>
                                     </div>
-                                    <div className="text-2xl font-black text-slate-800">{stat.value}</div>
-                                    <div className="text-xs font-medium text-slate-400 mt-1">{stat.label}</div>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${res.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                            {res.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${trialBadge.class}`}>
+                                            <i className={`fas ${trialBadge.icon} mr-1`}></i>{trialBadge.text}
+                                        </span>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-
-                        {/* Search & Filter Bar */}
-                        <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                            <div className="relative flex-1 w-full">
-                                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                                <input
-                                    type="text"
-                                    placeholder="Search by name, owner, email, phone..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {(['all', 'active', 'inactive', 'expired'] as const).map(status => (
-                                    <button
-                                        key={status}
-                                        onClick={() => setStatusFilter(status)}
-                                        className={`px-3 py-2 rounded-lg text-xs font-bold capitalize transition-all ${statusFilter === status
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                                            }`}
-                                    >
-                                        {status}{status === 'expired' && expiredCount > 0 ? ` (${expiredCount})` : ''}
+                                <div className="p-4 space-y-2">
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                                        <i className="fas fa-user text-[10px] text-slate-300 w-4"></i>
+                                        {res.ownerName}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                                        <i className="fas fa-phone text-[10px] text-slate-300 w-4"></i>
+                                        {res.phone}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                                        <i className="fas fa-key text-[10px] text-slate-300 w-4"></i>
+                                        User: {res.username || 'N/A'}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                                        <i className="fas fa-lock text-[10px] text-slate-300 w-4"></i>
+                                        Pass: {showPassword[res.id] ? res.password : '••••••'}
+                                        <button onClick={() => togglePasswordVisibility(res.id)} className="text-indigo-500 hover:text-indigo-700 ml-1">
+                                            <i className={`fas ${showPassword[res.id] ? 'fa-eye-slash' : 'fa-eye'} text-[10px]`}></i>
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <i className="fas fa-receipt text-[10px] text-slate-300 w-4"></i>
+                                        {(res as any)._count?.orders || 0} orders · {(res as any)._count?.menuItems || 0} items
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <i className="fas fa-link text-[10px] text-slate-300 w-4"></i>
+                                        <span className="bg-slate-50 px-2 py-0.5 rounded text-[10px] font-mono">/r/{res.slug}</span>
+                                        <button
+                                            onClick={() => {
+                                                const url = `${window.location.origin}${window.location.pathname}#/r/${res.slug}`;
+                                                navigator.clipboard.writeText(url);
+                                                alert('Link copied!');
+                                            }}
+                                            className="text-indigo-500"
+                                        >
+                                            <i className="fas fa-copy text-[10px]"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
+                                    <button onClick={() => openEditModal(res)} className="flex-1 text-xs font-bold py-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all">
+                                        <i className="fas fa-edit mr-1"></i> Edit
                                     </button>
-                                ))}
+                                    <button onClick={() => openTrialModal(res)} className="flex-1 text-xs font-bold py-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all">
+                                        <i className="fas fa-clock mr-1"></i> Trial
+                                    </button>
+                                    <button onClick={() => toggleRestaurantStatus(res)} className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${res.isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-500 hover:bg-green-100'}`}>
+                                        {res.isActive ? 'Disable' : 'Enable'}
+                                    </button>
+                                    <button
+                                        onClick={() => { if (confirm('Delete this restaurant? This cannot be undone.')) deleteRestaurant(res.id); }}
+                                        className="px-3 text-xs font-bold py-2 rounded-lg bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                                    >
+                                        <i className="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div className="text-xs text-slate-400 font-medium whitespace-nowrap">
-                                {filteredRestaurants.length} of {restaurants.length}
-                            </div>
-                        </div>
+                        )
+                    })}
+                </div>
 
-                        {/* Mobile Card View */}
-                        <div className="block lg:hidden space-y-4">
+                {/* Desktop Table View */}
+                <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-50 border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                            <tr>
+                                <th className="px-5 py-4">Restaurant</th>
+                                <th className="px-5 py-4">Owner</th>
+                                <th className="px-5 py-4">Credentials</th>
+                                <th className="px-5 py-4">Trial</th>
+                                <th className="px-5 py-4">Stats</th>
+                                <th className="px-5 py-4">Status</th>
+                                <th className="px-5 py-4">Link</th>
+                                <th className="px-5 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
                             {filteredRestaurants.map(res => {
                                 const trialBadge = getTrialBadge(res);
+                                const daysLeft = getTrialDaysRemaining(res);
                                 return (
-                                    <div key={res.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                                        <div className="p-4 border-b border-slate-50 flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                                                    {res.name}
-                                                    {(res as any).businessType === 'hotel' && (
-                                                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[9px] font-bold rounded-full"><i className="fas fa-hotel mr-0.5"></i>Hotel</span>
-                                                    )}
-                                                </h3>
-                                                <p className="text-xs text-slate-400">{res.email}</p>
+                                    <tr key={res.id} className={`hover:bg-slate-50/50 transition-colors ${daysLeft <= 0 && (res as any).trialEndDate ? 'bg-red-50/30' : ''}`}>
+                                        <td className="px-5 py-4">
+                                            <div className="font-bold text-slate-800 flex items-center gap-2">
+                                                {res.name}
+                                                {(res as any).businessType === 'hotel' && (
+                                                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[9px] font-bold rounded-full"><i className="fas fa-hotel mr-0.5"></i>Hotel</span>
+                                                )}
                                             </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${res.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                                    {res.isActive ? 'Active' : 'Inactive'}
-                                                </span>
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${trialBadge.class}`}>
-                                                    <i className={`fas ${trialBadge.icon} mr-1`}></i>{trialBadge.text}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="p-4 space-y-2">
-                                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                <i className="fas fa-user text-[10px] text-slate-300 w-4"></i>
-                                                {res.ownerName}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                                                <i className="fas fa-phone text-[10px] text-slate-300 w-4"></i>
-                                                {res.phone}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-                                                <i className="fas fa-key text-[10px] text-slate-300 w-4"></i>
-                                                User: {res.username || 'N/A'}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-                                                <i className="fas fa-lock text-[10px] text-slate-300 w-4"></i>
+                                            <div className="text-xs text-slate-400">{res.email}</div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="text-sm font-medium text-slate-700">{res.ownerName}</div>
+                                            <div className="text-[10px] text-slate-400">{res.phone}</div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="text-[10px] text-indigo-400 font-mono">User: {res.username || 'N/A'}</div>
+                                            <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
                                                 Pass: {showPassword[res.id] ? res.password : '••••••'}
-                                                <button onClick={() => togglePasswordVisibility(res.id)} className="text-indigo-500 hover:text-indigo-700 ml-1">
-                                                    <i className={`fas ${showPassword[res.id] ? 'fa-eye-slash' : 'fa-eye'} text-[10px]`}></i>
+                                                <button onClick={() => togglePasswordVisibility(res.id)} className="text-indigo-400 hover:text-indigo-600 ml-1">
+                                                    <i className={`fas ${showPassword[res.id] ? 'fa-eye-slash' : 'fa-eye'} text-[9px]`}></i>
                                                 </button>
                                             </div>
-                                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                                                <i className="fas fa-receipt text-[10px] text-slate-300 w-4"></i>
-                                                {(res as any)._count?.orders || 0} orders · {(res as any)._count?.menuItems || 0} items
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-slate-400">
-                                                <i className="fas fa-link text-[10px] text-slate-300 w-4"></i>
-                                                <span className="bg-slate-50 px-2 py-0.5 rounded text-[10px] font-mono">/r/{res.slug}</span>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <button
+                                                onClick={() => openTrialModal(res)}
+                                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 hover:opacity-80 transition-all cursor-pointer ${trialBadge.class}`}
+                                                title="Click to adjust trial"
+                                            >
+                                                <i className={`fas ${trialBadge.icon}`}></i>
+                                                {trialBadge.text}
+                                            </button>
+                                            {(res as any).trialEndDate && (
+                                                <div className="text-[9px] text-slate-300 mt-1">
+                                                    Ends: {new Date((res as any).trialEndDate).toLocaleDateString()}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="text-xs text-slate-600 font-medium">{(res as any)._count?.orders || 0} orders</div>
+                                            <div className="text-[10px] text-slate-400">{(res as any)._count?.menuItems || 0} menu items</div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${res.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                                {res.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-[10px] bg-slate-100 px-2 py-1 rounded-md text-slate-500 font-mono">
+                                                    /r/{res.slug}
+                                                </div>
                                                 <button
                                                     onClick={() => {
                                                         const url = `${window.location.origin}${window.location.pathname}#/r/${res.slug}`;
                                                         navigator.clipboard.writeText(url);
                                                         alert('Link copied!');
                                                     }}
-                                                    className="text-indigo-500"
+                                                    className="text-indigo-600 hover:text-indigo-800 p-1"
+                                                    title="Copy Public Link"
                                                 >
-                                                    <i className="fas fa-copy text-[10px]"></i>
+                                                    <i className="fas fa-copy text-xs"></i>
                                                 </button>
                                             </div>
-                                        </div>
-                                        <div className="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-                                            <button onClick={() => openEditModal(res)} className="flex-1 text-xs font-bold py-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all">
-                                                <i className="fas fa-edit mr-1"></i> Edit
-                                            </button>
-                                            <button onClick={() => openTrialModal(res)} className="flex-1 text-xs font-bold py-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all">
-                                                <i className="fas fa-clock mr-1"></i> Trial
-                                            </button>
-                                            <button onClick={() => toggleRestaurantStatus(res)} className={`flex-1 text-xs font-bold py-2 rounded-lg transition-all ${res.isActive ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-500 hover:bg-green-100'}`}>
-                                                {res.isActive ? 'Disable' : 'Enable'}
-                                            </button>
-                                            <button
-                                                onClick={() => { if (confirm('Delete this restaurant? This cannot be undone.')) deleteRestaurant(res.id); }}
-                                                className="px-3 text-xs font-bold py-2 rounded-lg bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
-                                            >
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                                        </td>
+                                        <td className="px-5 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => openEditModal(res)}
+                                                    className="text-xs font-bold px-2.5 py-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 transition-all"
+                                                    title="Edit"
+                                                >
+                                                    <i className="fas fa-edit"></i>
+                                                </button>
+                                                <button
+                                                    onClick={() => toggleRestaurantStatus(res)}
+                                                    className={`text-xs font-bold px-2.5 py-1.5 rounded-lg transition-all ${res.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
+                                                >
+                                                    {res.isActive ? 'Disable' : 'Enable'}
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('Delete this restaurant? This cannot be undone.')) {
+                                                            deleteRestaurant(res.id);
+                                                            setTimeout(loadStats, 500);
+                                                        }
+                                                    }}
+                                                    className="text-xs font-bold px-2.5 py-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                                                >
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 )
                             })}
-                        </div>
+                        </tbody>
+                    </table>
 
-                        {/* Desktop Table View */}
-                        <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-50 border-b border-slate-100 text-[10px] font-black uppercase text-slate-400 tracking-widest">
-                                    <tr>
-                                        <th className="px-5 py-4">Restaurant</th>
-                                        <th className="px-5 py-4">Owner</th>
-                                        <th className="px-5 py-4">Credentials</th>
-                                        <th className="px-5 py-4">Trial</th>
-                                        <th className="px-5 py-4">Stats</th>
-                                        <th className="px-5 py-4">Status</th>
-                                        <th className="px-5 py-4">Link</th>
-                                        <th className="px-5 py-4 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {filteredRestaurants.map(res => {
-                                        const trialBadge = getTrialBadge(res);
-                                        const daysLeft = getTrialDaysRemaining(res);
-                                        return (
-                                            <tr key={res.id} className={`hover:bg-slate-50/50 transition-colors ${daysLeft <= 0 && (res as any).trialEndDate ? 'bg-red-50/30' : ''}`}>
-                                                <td className="px-5 py-4">
-                                                    <div className="font-bold text-slate-800 flex items-center gap-2">
-                                                        {res.name}
-                                                        {(res as any).businessType === 'hotel' && (
-                                                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-600 text-[9px] font-bold rounded-full"><i className="fas fa-hotel mr-0.5"></i>Hotel</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-xs text-slate-400">{res.email}</div>
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <div className="text-sm font-medium text-slate-700">{res.ownerName}</div>
-                                                    <div className="text-[10px] text-slate-400">{res.phone}</div>
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <div className="text-[10px] text-indigo-400 font-mono">User: {res.username || 'N/A'}</div>
-                                                    <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
-                                                        Pass: {showPassword[res.id] ? res.password : '••••••'}
-                                                        <button onClick={() => togglePasswordVisibility(res.id)} className="text-indigo-400 hover:text-indigo-600 ml-1">
-                                                            <i className={`fas ${showPassword[res.id] ? 'fa-eye-slash' : 'fa-eye'} text-[9px]`}></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <button
-                                                        onClick={() => openTrialModal(res)}
-                                                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 hover:opacity-80 transition-all cursor-pointer ${trialBadge.class}`}
-                                                        title="Click to adjust trial"
-                                                    >
-                                                        <i className={`fas ${trialBadge.icon}`}></i>
-                                                        {trialBadge.text}
-                                                    </button>
-                                                    {(res as any).trialEndDate && (
-                                                        <div className="text-[9px] text-slate-300 mt-1">
-                                                            Ends: {new Date((res as any).trialEndDate).toLocaleDateString()}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <div className="text-xs text-slate-600 font-medium">{(res as any)._count?.orders || 0} orders</div>
-                                                    <div className="text-[10px] text-slate-400">{(res as any)._count?.menuItems || 0} menu items</div>
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${res.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                                        {res.isActive ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-5 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-[10px] bg-slate-100 px-2 py-1 rounded-md text-slate-500 font-mono">
-                                                            /r/{res.slug}
-                                                        </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                const url = `${window.location.origin}${window.location.pathname}#/r/${res.slug}`;
-                                                                navigator.clipboard.writeText(url);
-                                                                alert('Link copied!');
-                                                            }}
-                                                            className="text-indigo-600 hover:text-indigo-800 p-1"
-                                                            title="Copy Public Link"
-                                                        >
-                                                            <i className="fas fa-copy text-xs"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-1">
-                                                        <button
-                                                            onClick={() => openEditModal(res)}
-                                                            className="text-xs font-bold px-2.5 py-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 transition-all"
-                                                            title="Edit"
-                                                        >
-                                                            <i className="fas fa-edit"></i>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => toggleRestaurantStatus(res)}
-                                                            className={`text-xs font-bold px-2.5 py-1.5 rounded-lg transition-all ${res.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
-                                                        >
-                                                            {res.isActive ? 'Disable' : 'Enable'}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (confirm('Delete this restaurant? This cannot be undone.')) {
-                                                                    deleteRestaurant(res.id);
-                                                                    setTimeout(loadStats, 500);
-                                                                }
-                                                            }}
-                                                            className="text-xs font-bold px-2.5 py-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
-                                                        >
-                                                            <i className="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-
-                            {filteredRestaurants.length === 0 && (
-                                <div className="py-16 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
-                                        <i className="fas fa-store text-2xl"></i>
-                                    </div>
-                                    <h3 className="text-slate-500 font-medium">No restaurants found</h3>
-                                    <p className="text-sm text-slate-400 mt-1">
-                                        {searchQuery ? 'Try a different search term' : 'Add your first restaurant'}
-                                    </p>
-                                </div>
-                            )}
+                    {filteredRestaurants.length === 0 && (
+                        <div className="py-16 text-center">
+                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                <i className="fas fa-store text-2xl"></i>
+                            </div>
+                            <h3 className="text-slate-500 font-medium">No restaurants found</h3>
+                            <p className="text-sm text-slate-400 mt-1">
+                                {searchQuery ? 'Try a different search term' : 'Add your first restaurant'}
+                            </p>
                         </div>
-                    </>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Add Restaurant Modal */}
@@ -821,6 +753,7 @@ const SuperAdminView: React.FC = () => {
                     </div>
                 )
             }
+            {showAI && <MasterAIChat onClose={() => setShowAI(false)} stats={stats} />}
         </div>
     );
 };

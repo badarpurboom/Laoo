@@ -5,9 +5,10 @@ interface ImageUploaderProps {
     currentImage?: string;
     onImageUploaded: (url: string) => void;
     label?: string;
+    className?: string;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ currentImage, onImageUploaded, label = "Upload Image" }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ currentImage, onImageUploaded, label = "Upload Image", className = "h-40" }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [preview, setPreview] = useState<string | undefined>(currentImage);
@@ -41,7 +42,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ currentImage, onImageUplo
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{label}</label>
             <div
                 onClick={() => fileInputRef.current?.click()}
-                className="relative w-full h-40 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-indigo-300 transition-all group overflow-hidden"
+                className={`relative w-full ${className} bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-100 hover:border-indigo-300 transition-all group overflow-hidden`}
             >
                 {preview ? (
                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
