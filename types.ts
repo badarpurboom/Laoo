@@ -47,6 +47,7 @@ export interface Restaurant {
   requireTableNumber?: boolean;
 
   createdAt: string;
+  aiUpsellEnabled?: boolean;
 }
 
 export interface Notification {
@@ -107,6 +108,7 @@ export interface RestaurantSettings {
   currency: string;
   whatsappNumber?: string;
   isOpen: boolean;
+  aiUpsellEnabled?: boolean;
   orderPreferences: {
     dineIn: boolean;
     takeaway: boolean;

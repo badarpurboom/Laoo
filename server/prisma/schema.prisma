@@ -37,6 +37,9 @@ model Restaurant {
   // Trial
   trialEndDate DateTime?
   
+  // AI Config
+  aiUpsellEnabled Boolean @default(true)
+  
   createdAt   DateTime   @default(now())
   categories  Category[]
   menuItems   MenuItem[]

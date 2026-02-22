@@ -50,3 +50,8 @@ export const queryService = {
     getSchema: () => axiosInstance.get('/query/schema'),
     execute: (data: { queryKey?: string; customSql?: string }) => axiosInstance.post('/query/execute', data),
 };
+
+export const aiServiceApi = {
+    getRecommendations: (restaurantId: string, cartItems: any[], apiKey?: string) =>
+        axiosInstance.post('/ai-upsell/recommend', { restaurantId, cartItems, apiKey })
+};

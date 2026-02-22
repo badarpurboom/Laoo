@@ -49,6 +49,7 @@ const SuperAdminView: React.FC = () => {
         email: '',
         phone: '',
         password: '',
+        aiUpsellEnabled: true,
     });
 
     const generateSlug = (name: string) => {
@@ -142,6 +143,7 @@ const SuperAdminView: React.FC = () => {
             email: res.email,
             phone: res.phone,
             password: '',
+            aiUpsellEnabled: res.aiUpsellEnabled !== false,
         });
     };
 
@@ -158,6 +160,7 @@ const SuperAdminView: React.FC = () => {
                 email: editForm.email,
                 phone: editForm.phone,
                 slug: generateSlug(editForm.name),
+                aiUpsellEnabled: editForm.aiUpsellEnabled,
             };
             if (editForm.password.trim()) {
                 updateData.password = editForm.password.trim();
@@ -636,9 +639,20 @@ const SuperAdminView: React.FC = () => {
                                     </label>
                                     <input type="text" placeholder="Enter new password" value={editForm.password} onChange={e => setEditForm({ ...editForm, password: e.target.value })} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono" />
                                 </div>
-                                <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-500">
-                                    <div className="font-mono text-[10px] text-slate-400">Username: {editModal.username}</div>
-                                    <div className="font-mono text-[10px] text-slate-400">Slug: /r/{generateSlug(editForm.name)}</div>
+                                <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-500 flex justify-between items-center">
+                                    <div>
+                                        <div className="font-mono text-[10px] text-slate-400">Username: {editModal.username}</div>
+                                        <div className="font-mono text-[10px] text-slate-400">Slug: /r/{generateSlug(editForm.name)}</div>
+                                    </div>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase">AI Upsell</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={editForm.aiUpsellEnabled}
+                                            onChange={e => setEditForm(prev => ({ ...prev, aiUpsellEnabled: e.target.checked }))}
+                                            className="w-4 h-4 text-indigo-600 rounded bg-slate-200 border-slate-300 focus:ring-indigo-500"
+                                        />
+                                    </label>
                                 </div>
                                 <button
                                     type="submit"

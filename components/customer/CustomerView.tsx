@@ -85,7 +85,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
 };
 
 const CustomerView: React.FC = () => {
-  const { menuItems, categories, settings, addOrder, activeRestaurantId, orders, restaurants } = useStore();
+  const { menuItems, categories, settings, addOrder, activeRestaurantId, orders, restaurants, recommendedItems, isFetchingRecommendations, fetchAIRecommendations } = useStore();
   const activeRestaurant = restaurants.find(r => r.id === activeRestaurantId);
   const isHotel = activeRestaurant?.businessType === 'hotel';
   const tableLabel = isHotel ? 'Room Number' : 'Table Number';
@@ -270,7 +270,10 @@ const CustomerView: React.FC = () => {
           </div>
         </div>
         <button
-          onClick={() => setShowCart(true)}
+          onClick={() => {
+            setShowCart(true);
+            if (cart.length > 0) fetchAIRecommendations(cart);
+          }}
           className="relative p-2 text-slate-600 hover:text-orange-500 transition-colors"
         >
           <i className="fas fa-shopping-basket text-2xl"></i>
@@ -294,7 +297,10 @@ const CustomerView: React.FC = () => {
             Bill: ₹{sessionBill.total.toFixed(0)}
           </button>
         )}
-        <button onClick={() => setShowCart(true)} className="whitespace-nowrap px-4 py-1.5 rounded-full bg-white text-slate-500 text-xs font-bold border border-slate-200 hover:bg-slate-50">
+        <button onClick={() => {
+          setShowCart(true);
+          if (cart.length > 0) fetchAIRecommendations(cart);
+        }} className="whitespace-nowrap px-4 py-1.5 rounded-full bg-white text-slate-500 text-xs font-bold border border-slate-200 hover:bg-slate-50">
           Cart {cart.length > 0 && `(${cart.reduce((s, i) => s + i.quantity, 0)})`}
         </button>
       </div>
@@ -388,7 +394,10 @@ const CustomerView: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => setShowCart(true)}
+              onClick={() => {
+                setShowCart(true);
+                if (cart.length > 0) fetchAIRecommendations(cart);
+              }}
               className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-black text-sm transition-all active:scale-95 shadow-lg shadow-orange-500/20 flex items-center gap-2"
             >
               View Cart
@@ -458,6 +467,53 @@ const CustomerView: React.FC = () => {
                       })}
                     </div>
                   )}
+
+                  {/* AI Upsell Carousel */}
+                  {cart.length > 0 && settings.aiUpsellEnabled && (
+                    <div className="mt-8 border-t border-slate-100 pt-6">
+                      {isFetchingRecommendations ? (
+                        <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 animate-pulse">
+                          <h3 className="text-xs font-bold text-indigo-600 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+                            <i className="fas fa-sparkles"></i> AI is finding perfect add-ons...
+                          </h3>
+                          <div className="flex gap-3 overflow-hidden">
+                            {[1, 2, 3].map(i => (
+                              <div key={i} className="min-w-[120px] h-24 bg-indigo-100/50 rounded-xl"></div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : recommendedItems.length > 0 ? (
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl"></div>
+                          <h3 className="text-xs font-black text-indigo-800 mb-3 flex items-center gap-1.5 uppercase tracking-wider relative z-10">
+                            <i className="fas fa-magic text-indigo-500"></i> Perfect Add-ons For You
+                          </h3>
+                          <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 relative z-10">
+                            {recommendedItems.filter(item => !cart.find(c => c.id === item.id)).map(item => (
+                              <div key={item.id} className="min-w-[130px] w-[130px] bg-white rounded-xl p-2 shadow-sm border border-indigo-50/50 flex flex-col gap-2 group">
+                                <div className="overflow-hidden rounded-lg">
+                                  <img src={item.imageUrl} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between">
+                                  <h4 className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2" title={item.name}>{item.name}</h4>
+                                  <div className="flex justify-between items-center mt-2">
+                                    <span className="text-[11px] font-black text-indigo-600">₹{item.fullPrice}</span>
+                                    <button
+                                      onClick={() => addToCart(item, 'full')}
+                                      className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm active:scale-95"
+                                    >
+                                      <i className="fas fa-plus text-[9px]"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                  {/* End AI Upsell */}
                 </>
               )}
 

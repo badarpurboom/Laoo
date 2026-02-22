@@ -13,12 +13,14 @@ import {
   UserRole,
   OrderStatus
 } from './types';
-import { restaurantService, menuService, orderService } from './services/api';
+import { restaurantService, menuService, orderService, aiServiceApi } from './services/api';
 
 interface AppState {
   // Menu
   categories: Category[];
   menuItems: MenuItem[];
+  recommendedItems: MenuItem[];
+  isFetchingRecommendations: boolean;
 
   // Orders
   orders: Order[];
@@ -55,6 +57,10 @@ interface AppState {
   updateSettings: (settings: RestaurantSettings) => Promise<void>;
   updateAIConfig: (config: AIConfig) => void;
   updatePaymentConfig: (config: PaymentConfig) => void;
+
+  // AI Upsell
+  fetchAIRecommendations: (cartItems: any[]) => Promise<void>;
+  clearRecommendations: () => void;
 }
 
 export const useStore = create<AppState>()(
@@ -66,6 +72,8 @@ export const useStore = create<AppState>()(
       categories: [],
       menuItems: [],
       orders: [],
+      recommendedItems: [],
+      isFetchingRecommendations: false,
 
       settings: {
         restaurantId: '',
@@ -81,6 +89,7 @@ export const useStore = create<AppState>()(
         deliveryFreeThreshold: 0,
         currency: 'INR',
         isOpen: true,
+        aiUpsellEnabled: true,
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -184,6 +193,7 @@ export const useStore = create<AppState>()(
                   deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 500,
                   currency: 'INR',
                   isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
+                  aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : true,
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -222,6 +232,7 @@ export const useStore = create<AppState>()(
               deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 0,
               currency: 'INR',
               isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
+              aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : true,
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -299,6 +310,7 @@ export const useStore = create<AppState>()(
             phone: settings.contact,
             logoUrl: settings.logoUrl,
             isActive: settings.isOpen,
+            aiUpsellEnabled: settings.aiUpsellEnabled,
             taxEnabled: settings.taxEnabled,
             taxPercentage: settings.taxPercentage,
             deliveryChargesEnabled: settings.deliveryChargesEnabled,
@@ -318,6 +330,26 @@ export const useStore = create<AppState>()(
       },
       updateAIConfig: (aiConfig) => set({ aiConfig }),
       updatePaymentConfig: (paymentConfig) => set({ paymentConfig }),
+
+      fetchAIRecommendations: async (cartItems) => {
+        const { activeRestaurantId, settings, aiConfig } = get();
+        if (!activeRestaurantId || cartItems.length === 0 || !settings.aiUpsellEnabled) {
+          set({ recommendedItems: [] });
+          return;
+        }
+
+        set({ isFetchingRecommendations: true });
+        try {
+          const resp = await aiServiceApi.getRecommendations(activeRestaurantId, cartItems, aiConfig.apiKey);
+          set({ recommendedItems: resp.data });
+        } catch (err) {
+          console.error("AI Upsell fetch failed", err);
+          set({ recommendedItems: [] });
+        } finally {
+          set({ isFetchingRecommendations: false });
+        }
+      },
+      clearRecommendations: () => set({ recommendedItems: [] }),
     }),
     {
       name: 'bistroflow-storage',
