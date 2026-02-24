@@ -6,10 +6,11 @@ import OrderDesk from './OrderDesk';
 import MenuManager from './MenuManager';
 import AIChat from './AIChat';
 import SettingsManager from './SettingsManager';
+import MarketingManager from './MarketingManager';
 
 const AdminView: React.FC = () => {
   const { currentUser, setActiveRestaurantId, activeRestaurantId, setCurrentUser, settings, restaurants } = useStore();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'menu' | 'ai' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'menu' | 'ai' | 'marketing' | 'settings'>('dashboard');
   const [audioEnabled, setAudioEnabled] = React.useState(true);
 
 
@@ -33,6 +34,7 @@ const AdminView: React.FC = () => {
     { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-chart-line' },
     { id: 'orders', label: 'Order Desk', icon: 'fas fa-clipboard-list' },
     { id: 'menu', label: 'Menu Manager', icon: 'fas fa-th-large' },
+    { id: 'marketing', label: 'Marketing', icon: 'fas fa-bullhorn' },
     { id: 'ai', label: 'AI Analytics', icon: 'fas fa-robot' },
     { id: 'settings', label: 'Settings', icon: 'fas fa-cog' },
   ];
@@ -92,6 +94,7 @@ const AdminView: React.FC = () => {
         {activeTab === 'dashboard' && <AdminDashboard />}
         {activeTab === 'orders' && <OrderDesk />}
         {activeTab === 'menu' && <MenuManager />}
+        {activeTab === 'marketing' && <MarketingManager />}
         {activeTab === 'ai' && <AIChat />}
         {activeTab === 'settings' && <SettingsManager />}
       </main>

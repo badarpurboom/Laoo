@@ -50,6 +50,15 @@ export interface Restaurant {
   aiUpsellEnabled?: boolean;
 }
 
+export interface Banner {
+  id: string;
+  restaurantId: string;
+  imageUrl: string;
+  title?: string;
+  isActive: boolean;
+  createdAt?: string; // Optional since it's populated by DB automatically
+}
+
 export interface Notification {
   id: string;
   restaurantId: string;
@@ -76,6 +85,7 @@ export interface CartItem extends MenuItem {
   quantity: number;
   portionType: 'half' | 'full';
   price: number; // The actual price for the selected portion
+  isUpsell?: boolean;
 }
 
 export interface Order {

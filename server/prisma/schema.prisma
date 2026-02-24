@@ -45,6 +45,18 @@ model Restaurant {
   menuItems   MenuItem[]
   orders      Order[]
   notifications Notification[]
+  banners     Banner[]
+}
+
+model Banner {
+  id           String     @id @default(cuid())
+  restaurantId String
+  imageUrl     String
+  title        String?
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 }
 
 model Category {
@@ -67,6 +79,7 @@ model MenuItem {
   imageUrl     String?
   isVeg        Boolean       @default(true)
   isAvailable  Boolean       @default(true)
+  recommendedItemIds String? // Pre-computed AI Upsell recommendations (JSON array string)
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   OrderDetails OrderDetail[]
@@ -95,6 +108,7 @@ model OrderDetail {
   quantity   Int
   price      Float
   portion    String?  @default("full")
+  isUpsell   Boolean  @default(false)
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
 }

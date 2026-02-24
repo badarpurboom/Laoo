@@ -53,5 +53,14 @@ export const queryService = {
 
 export const aiServiceApi = {
     getRecommendations: (restaurantId: string, cartItems: any[], apiKey?: string) =>
-        axiosInstance.post('/ai-upsell/recommend', { restaurantId, cartItems, apiKey })
+        axiosInstance.post('/ai-upsell/recommend', { restaurantId, cartItems, apiKey }),
+    syncMenu: (restaurantId: string, apiKey?: string) =>
+        axiosInstance.post('/ai-upsell/sync-menu', { restaurantId, apiKey })
+};
+
+export const bannerService = {
+    getBanners: (restaurantId: string) => axiosInstance.get(`/banners/${restaurantId}`),
+    createBanner: (data: any) => axiosInstance.post('/banners', data),
+    updateBanner: (id: string, data: any) => axiosInstance.put(`/banners/${id}`, data),
+    deleteBanner: (id: string) => axiosInstance.delete(`/banners/${id}`),
 };

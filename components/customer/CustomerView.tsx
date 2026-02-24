@@ -1,6 +1,73 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
 import { MenuItem, CartItem, Order, OrderType } from '../../types';
+
+// ── Marketing Banner Carousel ──────────────────────────────────────────────
+const BannerCarousel: React.FC = () => {
+  const { banners, fetchBanners } = useStore();
+  const activeBanners = banners.filter(b => b.isActive);
+  const [current, setCurrent] = React.useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => { fetchBanners(); }, []);
+
+  useEffect(() => {
+    if (activeBanners.length <= 1) return;
+    timerRef.current = setInterval(() => {
+      setCurrent(c => (c + 1) % activeBanners.length);
+    }, 4000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [activeBanners.length]);
+
+  if (activeBanners.length === 0) {
+    return (
+      <section className="px-4 py-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-b-[2.5rem] mb-6">
+        <h2 className="text-3xl font-bold mb-1">Delicious Food,</h2>
+        <p className="text-orange-100 text-lg">Delivered straight to your table.</p>
+      </section>
+    );
+  }
+
+  return (
+    <div className="px-4 mt-3 mb-6">
+      <div className="relative overflow-hidden rounded-2xl shadow-md">
+        <div
+          className="flex transition-transform duration-700 ease-in-out"
+          style={{ transform: `translateX(-${current * 100}%)` }}
+        >
+          {activeBanners.map(banner => (
+            <div key={banner.id} className="min-w-full relative">
+              <img
+                src={banner.imageUrl}
+                alt={banner.title || 'Promo'}
+                className="w-full h-44 sm:h-56 object-cover"
+              />
+              {banner.title && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-5 py-4">
+                  <p className="text-white font-bold text-base leading-tight">{banner.title}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {/* Dots */}
+        {activeBanners.length > 1 && (
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {activeBanners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`h-1.5 rounded-full transition-all ${i === current ? 'bg-white w-4' : 'bg-white/50 w-1.5'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -11,15 +78,44 @@ interface MenuItemCardProps {
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, updateQuantity }) => {
   const [selectedPortion, setSelectedPortion] = useState<'half' | 'full'>('full');
+  const [imgZoomed, setImgZoomed] = useState(false);
+  const autoResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cartItemId = `${item.id}-${selectedPortion}`;
   const inCart = cart.find(i => `${i.id}-${i.portionType}` === cartItemId);
   const price = selectedPortion === 'half' ? (item.halfPrice || item.fullPrice) : item.fullPrice;
 
+  const zoomIn = () => {
+    setImgZoomed(true);
+    // Auto-close after 2.5 seconds
+    if (autoResetRef.current) clearTimeout(autoResetRef.current);
+    autoResetRef.current = setTimeout(() => setImgZoomed(false), 2500);
+    // Close on next scroll
+    const closeOnScroll = () => { setImgZoomed(false); window.removeEventListener('scroll', closeOnScroll, true); };
+    window.addEventListener('scroll', closeOnScroll, true);
+    // Close on click anywhere else
+    const closeOnClick = () => { setImgZoomed(false); document.removeEventListener('click', closeOnClick, true); };
+    setTimeout(() => document.addEventListener('click', closeOnClick, true), 0);
+  };
+
   return (
-    <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md">
-      <div className="relative">
-        <img src={item.imageUrl} alt={item.name} className="w-24 h-24 rounded-xl object-cover" />
-        <span className={`absolute top-1 left-1 text-[8px] px-1.5 py-0.5 rounded-full font-bold ${item.isVeg ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+    <div
+      className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md cursor-pointer"
+      onClick={zoomIn}
+    >
+      <div className="relative flex-shrink-0" style={{ zIndex: imgZoomed ? 20 : 'auto' }}>
+        <img
+          src={item.imageUrl}
+          alt={item.name}
+          className="w-24 h-24 rounded-xl object-cover"
+          style={{
+            transform: imgZoomed ? 'scale(1.55)' : 'scale(1)',
+            transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            position: 'relative',
+            zIndex: imgZoomed ? 20 : 'auto',
+          }}
+        />
+        <span className={`absolute top-1 left-1 text-[8px] px-1.5 py-0.5 rounded-full font-bold ${item.isVeg ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
+          style={{ zIndex: imgZoomed ? 21 : 'auto' }}>
           {item.isVeg ? 'VEG' : 'N-VEG'}
         </span>
       </div>
@@ -35,13 +131,13 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
             {item.halfPrice && (
               <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                 <button
-                  onClick={() => setSelectedPortion('half')}
+                  onClick={(e) => { e.stopPropagation(); setSelectedPortion('half'); }}
                   className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${selectedPortion === 'half' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Half
                 </button>
                 <button
-                  onClick={() => setSelectedPortion('full')}
+                  onClick={(e) => { e.stopPropagation(); setSelectedPortion('full'); }}
                   className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${selectedPortion === 'full' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                   Full
@@ -55,14 +151,14 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
           {inCart ? (
             <div className="flex items-center gap-3 bg-white rounded-full px-2 py-1 shadow-sm border border-orange-100">
               <button
-                onClick={() => updateQuantity(cartItemId, -1)}
+                onClick={(e) => { e.stopPropagation(); updateQuantity(cartItemId, -1); }}
                 className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full"
               >
                 <i className="fas fa-minus text-[10px]"></i>
               </button>
               <span className="text-xs font-black w-4 text-center text-slate-800">{inCart.quantity}</span>
               <button
-                onClick={() => updateQuantity(cartItemId, 1)}
+                onClick={(e) => { e.stopPropagation(); updateQuantity(cartItemId, 1); }}
                 className="w-6 h-6 flex items-center justify-center text-orange-500 hover:bg-orange-50 rounded-full"
               >
                 <i className="fas fa-plus text-[10px]"></i>
@@ -71,7 +167,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
           ) : (
             <button
               disabled={!item.isAvailable}
-              onClick={() => addToCart(item, selectedPortion)}
+              onClick={(e) => { e.stopPropagation(); addToCart(item, selectedPortion); }}
               className="bg-orange-500 text-white px-4 py-1.5 rounded-full flex items-center gap-2 hover:bg-orange-600 disabled:bg-slate-300 shadow-sm transition-all active:scale-95 text-[10px] font-black uppercase tracking-wider"
             >
               Add
@@ -147,20 +243,31 @@ const CustomerView: React.FC = () => {
     }
   }, [settings.orderPreferences, orderType]);
 
+  // FIXME: Debug AI Upsell State
+  React.useEffect(() => {
+    console.log("CustomerView Context Dump:", {
+      aiUpsellEnabled: settings.aiUpsellEnabled,
+      cartLength: cart.length,
+      recommendedLength: recommendedItems.length,
+      settingsObj: settings,
+      cartData: cart
+    });
+  }, [cart.length, settings.aiUpsellEnabled, recommendedItems.length]);
+
   const filteredMenu = useMemo(() => {
     let results = tenantMenuItems;
 
-    // Category filter
-    if (selectedCategory !== 'all') {
+    // Category filter — skip if user is actively searching
+    if (selectedCategory !== 'all' && !searchQuery.trim()) {
       results = results.filter(item => item.categoryId === selectedCategory);
     }
 
-    // Search filter
+    // Search filter — always searches all items
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       results = results.filter(item =>
-        item.name.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query)
+        (item.name && item.name.toLowerCase().includes(query)) ||
+        (item.description && item.description.toLowerCase().includes(query))
       );
     }
 
@@ -183,7 +290,7 @@ const CustomerView: React.FC = () => {
   }
   const finalTotal = cartTotal + taxAmount + deliveryFee;
 
-  const addToCart = (item: MenuItem, portion: 'half' | 'full' = 'full') => {
+  const addToCart = (item: MenuItem, portion: 'half' | 'full' = 'full', isUpsell: boolean = false) => {
     setCart(prev => {
       const cartItemId = `${item.id}-${portion}`;
       const existing = prev.find(i => `${i.id}-${i.portionType}` === cartItemId);
@@ -192,7 +299,7 @@ const CustomerView: React.FC = () => {
       if (existing) {
         return prev.map(i => `${i.id}-${i.portionType}` === cartItemId ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { ...item, quantity: 1, price, portionType: portion }];
+      return [...prev, { ...item, quantity: 1, price, portionType: portion, isUpsell }];
     });
   };
 
@@ -269,47 +376,37 @@ const CustomerView: React.FC = () => {
             )}
           </div>
         </div>
-        <button
-          onClick={() => {
-            setShowCart(true);
-            if (cart.length > 0) fetchAIRecommendations(cart);
-          }}
-          className="relative p-2 text-slate-600 hover:text-orange-500 transition-colors"
-        >
-          <i className="fas fa-shopping-basket text-2xl"></i>
-          {cart.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
-              {cart.reduce((s, i) => s + i.quantity, 0)}
-            </span>
+        {/* Right side: Bill (if dine-in) + Cart */}
+        <div className="flex items-center gap-2">
+          {sessionBill.total > 0 && (
+            <button
+              onClick={() => setShowBill(true)}
+              className="flex items-center gap-1.5 bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-slate-700 transition-colors"
+            >
+              <i className="fas fa-receipt text-[10px]"></i>
+              Bill
+            </button>
           )}
-        </button>
+          <button
+            onClick={() => {
+              setShowCart(true);
+              if (cart.length > 0) fetchAIRecommendations(cart);
+            }}
+            className="relative p-2 text-slate-600 hover:text-orange-500 transition-colors"
+          >
+            <i className="fas fa-shopping-basket text-2xl"></i>
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
+                {cart.reduce((s, i) => s + i.quantity, 0)}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
 
-      {/* Sticky Top Order Bar (Optional, for quick nav) */}
-      <div className="sticky top-16 z-30 bg-slate-100 flex gap-4 px-4 py-2 border-b overflow-x-auto no-scrollbar">
-        <button className="whitespace-nowrap px-4 py-1.5 rounded-full bg-white text-slate-800 text-xs font-bold shadow-sm border border-slate-200">
-          Menu
-        </button>
 
-        {sessionBill.total > 0 && (
-          <button onClick={() => setShowBill(true)} className="whitespace-nowrap px-4 py-1.5 rounded-full bg-slate-800 text-white text-xs font-bold shadow-sm flex items-center gap-2">
-            <i className="fas fa-receipt"></i>
-            Bill: ₹{sessionBill.total.toFixed(0)}
-          </button>
-        )}
-        <button onClick={() => {
-          setShowCart(true);
-          if (cart.length > 0) fetchAIRecommendations(cart);
-        }} className="whitespace-nowrap px-4 py-1.5 rounded-full bg-white text-slate-500 text-xs font-bold border border-slate-200 hover:bg-slate-50">
-          Cart {cart.length > 0 && `(${cart.reduce((s, i) => s + i.quantity, 0)})`}
-        </button>
-      </div>
-
-      {/* Hero */}
-      <section className="px-4 py-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-b-[2.5rem] mb-8">
-        <h2 className="text-3xl font-bold mb-2">Delicious Food,</h2>
-        <p className="text-orange-100 text-lg">Delivered straight to your table.</p>
-      </section>
+      {/* Dynamic Marketing Banner Carousel */}
+      <BannerCarousel />
 
       {/* Search Bar */}
       <div className="px-4 mb-4">
@@ -320,6 +417,13 @@ const CustomerView: React.FC = () => {
             placeholder="Search for dishes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={(e) => {
+              const target = e.target as HTMLInputElement;
+              // Add a small delay for the mobile keyboard to pop up before scrolling
+              setTimeout(() => {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 400);
+            }}
             className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
           />
           {searchQuery && (
@@ -421,6 +525,53 @@ const CustomerView: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
               {checkoutStep === 'cart' && (
                 <>
+                  {/* AI Upsell Carousel - MOVED TO TOP FOR VISIBILITY */}
+                  {cart.length > 0 && settings.aiUpsellEnabled && (
+                    <div className="mb-6 pb-6 border-b border-slate-100 flex-shrink-0">
+                      {isFetchingRecommendations ? (
+                        <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 animate-pulse">
+                          <h3 className="text-xs font-bold text-indigo-600 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+                            <i className="fas fa-sparkles"></i> AI is finding perfect add-ons...
+                          </h3>
+                          <div className="flex gap-3 overflow-hidden">
+                            {[1, 2, 3].map(i => (
+                              <div key={i} className="min-w-[120px] h-24 bg-indigo-100/50 rounded-xl"></div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : recommendedItems.length > 0 ? (
+                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl"></div>
+                          <h3 className="text-xs font-black text-indigo-800 mb-3 flex items-center gap-1.5 uppercase tracking-wider relative z-10">
+                            <i className="fas fa-magic text-indigo-500"></i> Perfect Add-ons For You
+                          </h3>
+                          <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 relative z-10">
+                            {recommendedItems.filter(item => !cart.find(c => c.id === item.id)).map(item => (
+                              <div key={item.id} className="min-w-[130px] w-[130px] bg-white rounded-xl p-2 shadow-sm border border-indigo-50/50 flex flex-col gap-2 group">
+                                <div className="overflow-hidden rounded-lg">
+                                  <img src={item.imageUrl} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between">
+                                  <h4 className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2" title={item.name}>{item.name}</h4>
+                                  <div className="flex justify-between items-center mt-2">
+                                    <span className="text-[11px] font-black text-indigo-600">₹{item.fullPrice}</span>
+                                    <button
+                                      onClick={() => addToCart(item, 'full', true)}
+                                      className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm active:scale-95"
+                                    >
+                                      <i className="fas fa-plus text-[9px]"></i>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                  {/* End AI Upsell */}
+
                   {cart.length === 0 ? (
                     <div className="text-center py-20">
                       <i className="fas fa-shopping-cart text-slate-200 text-6xl mb-4"></i>
@@ -467,53 +618,6 @@ const CustomerView: React.FC = () => {
                       })}
                     </div>
                   )}
-
-                  {/* AI Upsell Carousel */}
-                  {cart.length > 0 && settings.aiUpsellEnabled && (
-                    <div className="mt-8 border-t border-slate-100 pt-6">
-                      {isFetchingRecommendations ? (
-                        <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 animate-pulse">
-                          <h3 className="text-xs font-bold text-indigo-600 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
-                            <i className="fas fa-sparkles"></i> AI is finding perfect add-ons...
-                          </h3>
-                          <div className="flex gap-3 overflow-hidden">
-                            {[1, 2, 3].map(i => (
-                              <div key={i} className="min-w-[120px] h-24 bg-indigo-100/50 rounded-xl"></div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : recommendedItems.length > 0 ? (
-                        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl"></div>
-                          <h3 className="text-xs font-black text-indigo-800 mb-3 flex items-center gap-1.5 uppercase tracking-wider relative z-10">
-                            <i className="fas fa-magic text-indigo-500"></i> Perfect Add-ons For You
-                          </h3>
-                          <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 relative z-10">
-                            {recommendedItems.filter(item => !cart.find(c => c.id === item.id)).map(item => (
-                              <div key={item.id} className="min-w-[130px] w-[130px] bg-white rounded-xl p-2 shadow-sm border border-indigo-50/50 flex flex-col gap-2 group">
-                                <div className="overflow-hidden rounded-lg">
-                                  <img src={item.imageUrl} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
-                                </div>
-                                <div className="flex-1 flex flex-col justify-between">
-                                  <h4 className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2" title={item.name}>{item.name}</h4>
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="text-[11px] font-black text-indigo-600">₹{item.fullPrice}</span>
-                                    <button
-                                      onClick={() => addToCart(item, 'full')}
-                                      className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm active:scale-95"
-                                    >
-                                      <i className="fas fa-plus text-[9px]"></i>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-                  {/* End AI Upsell */}
                 </>
               )}
 

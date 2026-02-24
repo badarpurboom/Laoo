@@ -1,10 +1,10 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useStore } from '../../store';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const AdminDashboard: React.FC = () => {
-  const { orders, activeRestaurantId } = useStore();
+  const { orders, activeRestaurantId, categories, menuItems } = useStore();
 
   const tenantOrders = orders.filter(o => o.restaurantId === activeRestaurantId);
 
@@ -13,19 +13,92 @@ const AdminDashboard: React.FC = () => {
   const preparingOrders = tenantOrders.filter(o => o.status === 'preparing').length;
   const deliveryOrders = tenantOrders.filter(o => o.status === 'delivered').length;
 
-  // Mock data for graphs
-  const revenueData = [
-    { name: 'Mon', revenue: 2400 },
-    { name: 'Tue', revenue: 1398 },
-    { name: 'Wed', revenue: 9800 },
-    { name: 'Thu', revenue: 3908 },
-    { name: 'Fri', revenue: 4800 },
-    { name: 'Sat', revenue: 3800 },
-    { name: 'Sun', revenue: 4300 },
-  ];
+  // Calculate real revenue data for the last 7 days
+  const revenueData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        name: days[d.getDay()],
+        dateStr: d.toDateString(), // For comparing
+        revenue: 0
+      };
+    });
+
+    tenantOrders.forEach(order => {
+      // Only count completed orders toward revenue chart
+      if (order.status !== 'cancelled' && order.timestamp) {
+        const orderDate = new Date(order.timestamp).toDateString();
+        const dayMatch = last7Days.find(d => d.dateStr === orderDate);
+        if (dayMatch) {
+          dayMatch.revenue += order.totalAmount;
+        }
+      }
+    });
+
+    return last7Days.map(d => ({ name: d.name, revenue: Math.round(d.revenue) }));
+  }, [tenantOrders]);
+
+  // Calculate top selling categories
+  const topCategoriesData = useMemo(() => {
+    const categorySales: Record<string, number> = {};
+    const tenantCategories = categories.filter(c => c.restaurantId === activeRestaurantId);
+
+    tenantOrders.forEach(order => {
+      if (order.status !== 'cancelled') {
+        order.items.forEach(item => {
+          const menuItem = menuItems.find(m => m.id === item.id);
+          if (menuItem) {
+            const catId = menuItem.categoryId;
+            if (categorySales[catId]) {
+              categorySales[catId] += item.quantity;
+            } else {
+              categorySales[catId] = item.quantity;
+            }
+          }
+        });
+      }
+    });
+
+    return tenantCategories.map(cat => ({
+      name: cat.name,
+      value: categorySales[cat.id] || 0
+    })).sort((a, b) => b.value - a.value).slice(0, 5); // Get top 5
+
+  }, [tenantOrders, categories, menuItems, activeRestaurantId]);
+
+  // Calculate AI Upsell Analytics
+  const aiUpsellRevenue = useMemo(() => {
+    return tenantOrders.reduce((sum, order) => {
+      if (order.status === 'cancelled') return sum;
+      const orderAIRev = order.items.reduce((itemSum, item) => {
+        return item.isUpsell ? itemSum + (item.price * item.quantity) : itemSum;
+      }, 0);
+      return sum + orderAIRev;
+    }, 0);
+  }, [tenantOrders]);
+
+  const topAIItemsData = useMemo(() => {
+    const itemSales: Record<string, number> = {};
+    tenantOrders.forEach(order => {
+      if (order.status !== 'cancelled') {
+        order.items.forEach(item => {
+          if (item.isUpsell) {
+            itemSales[item.name] = (itemSales[item.name] || 0) + item.quantity;
+          }
+        });
+      }
+    });
+    return Object.keys(itemSales).map(name => ({
+      name,
+      value: itemSales[name]
+    })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [tenantOrders]);
 
   const stats = [
-    { label: "Today's Revenue", value: `₹${totalRevenue.toFixed(0)}`, icon: 'fas fa-dollar-sign', color: 'bg-emerald-100 text-emerald-600' },
+    { label: "Total Revenue", value: `₹${totalRevenue.toFixed(0)}`, icon: 'fas fa-dollar-sign', color: 'bg-emerald-100 text-emerald-600' },
+    { label: "AI Extra Revenue", value: `₹${aiUpsellRevenue.toFixed(0)}`, icon: 'fas fa-magic', color: 'bg-indigo-100 text-indigo-600' },
     { label: "Total Orders", value: tenantOrders.length, icon: 'fas fa-shopping-bag', color: 'bg-blue-100 text-blue-600' },
     { label: "Pending", value: pendingOrders, icon: 'fas fa-clock', color: 'bg-orange-100 text-orange-600' },
     { label: "Delivered", value: deliveryOrders, icon: 'fas fa-check-circle', color: 'bg-purple-100 text-purple-600' },
@@ -41,7 +114,6 @@ const AdminDashboard: React.FC = () => {
               <div className={`${stat.color} p-3 rounded-xl`}>
                 <i className={stat.icon}></i>
               </div>
-              <span className="text-xs font-bold text-emerald-500">+12%</span>
             </div>
             <h3 className="text-slate-500 text-sm font-medium">{stat.label}</h3>
             <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
@@ -52,7 +124,7 @@ const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Chart */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h3 className="text-lg font-bold text-slate-800 mb-6">Revenue Analysis</h3>
+          <h3 className="text-lg font-bold text-slate-800 mb-6">Revenue Analysis (Last 7 Days)</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData}>
@@ -66,6 +138,7 @@ const AdminDashboard: React.FC = () => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <Tooltip
+                  formatter={(value: number) => [`₹${value}`, 'Revenue']}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#4f46e5" fillOpacity={1} fill="url(#colorRevenue)" strokeWidth={3} />
@@ -79,20 +152,38 @@ const AdminDashboard: React.FC = () => {
           <h3 className="text-lg font-bold text-slate-800 mb-6">Top Selling Categories</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={[
-                { name: 'Starters', value: 45 },
-                { name: 'Mains', value: 80 },
-                { name: 'Drinks', value: 30 },
-                { name: 'Desserts', value: 20 },
-              ]}>
+              <BarChart data={topCategoriesData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                 <Tooltip
+                  formatter={(value: number) => [`${value} Items Sold`, 'Sales']}
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                 />
                 <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Top AI Items Chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <i className="fas fa-magic text-indigo-500"></i> Top AI Upsold Items
+          </h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topAIItemsData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <Tooltip
+                  formatter={(value: number) => [`${value} Items Upsold`, 'Sales']}
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -50,6 +50,7 @@ import uploadRoutes from './routes/upload.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import queryRoutes from './routes/query.routes.js';
 import aiUpsellRoutes from './routes/ai-upsell.routes.js';
+import bannerRoutes from './routes/banner.routes.js';
 
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/menu', menuRoutes);
@@ -58,6 +59,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/query', queryRoutes);
 app.use('/api/ai-upsell', aiUpsellRoutes);
+app.use('/api/banners', bannerRoutes);
 
 // Serve uploads statically
 // Parent directory of 'src' is 'server' root, so uploads is there

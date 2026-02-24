@@ -11,9 +11,10 @@ import {
   User,
   Restaurant,
   UserRole,
-  OrderStatus
+  OrderStatus,
+  Banner
 } from './types';
-import { restaurantService, menuService, orderService, aiServiceApi } from './services/api';
+import { restaurantService, menuService, orderService, aiServiceApi, bannerService } from './services/api';
 
 interface AppState {
   // Menu
@@ -34,6 +35,9 @@ interface AppState {
   restaurants: Restaurant[];
   currentUser: User | null;
   activeRestaurantId: string | null;
+
+  // Marketing
+  banners: Banner[];
 
   // Actions
   fetchDashboardData: () => Promise<void>;
@@ -61,6 +65,12 @@ interface AppState {
   // AI Upsell
   fetchAIRecommendations: (cartItems: any[]) => Promise<void>;
   clearRecommendations: () => void;
+
+  // Banner Actions
+  fetchBanners: () => Promise<void>;
+  addBanner: (data: Partial<Banner>) => Promise<void>;
+  updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
+  deleteBanner: (id: string) => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -74,6 +84,7 @@ export const useStore = create<AppState>()(
       orders: [],
       recommendedItems: [],
       isFetchingRecommendations: false,
+      banners: [],
 
       settings: {
         restaurantId: '',
@@ -193,7 +204,7 @@ export const useStore = create<AppState>()(
                   deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 500,
                   currency: 'INR',
                   isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
-                  aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : true,
+                  aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : false,
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -232,7 +243,7 @@ export const useStore = create<AppState>()(
               deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 0,
               currency: 'INR',
               isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
-              aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : true,
+              aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : false,
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -350,6 +361,31 @@ export const useStore = create<AppState>()(
         }
       },
       clearRecommendations: () => set({ recommendedItems: [] }),
+
+      fetchBanners: async () => {
+        const { activeRestaurantId } = get();
+        if (!activeRestaurantId) return;
+        try {
+          const resp = await bannerService.getBanners(activeRestaurantId);
+          set({ banners: resp.data });
+        } catch (err) {
+          console.error('Failed to fetch banners', err);
+        }
+      },
+      addBanner: async (data) => {
+        const resp = await bannerService.createBanner(data);
+        set((state) => ({ banners: [resp.data, ...state.banners] }));
+      },
+      updateBanner: async (id, data) => {
+        const resp = await bannerService.updateBanner(id, data);
+        set((state) => ({
+          banners: state.banners.map(b => b.id === id ? resp.data : b)
+        }));
+      },
+      deleteBanner: async (id) => {
+        await bannerService.deleteBanner(id);
+        set((state) => ({ banners: state.banners.filter(b => b.id !== id) }));
+      },
     }),
     {
       name: 'bistroflow-storage',

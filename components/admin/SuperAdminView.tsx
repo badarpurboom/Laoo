@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import { Restaurant } from '../../types';
-import { restaurantService } from '../../services/api';
+import { restaurantService, aiServiceApi } from '../../services/api';
 import MasterAIChat from './MasterAIChat';
 
 const SuperAdminView: React.FC = () => {
@@ -171,6 +171,22 @@ const SuperAdminView: React.FC = () => {
         } catch (err: any) {
             console.error(err);
             setError(err.response?.data?.error || 'Failed to update restaurant.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSyncMenu = async () => {
+        if (!editModal) return;
+        if (!confirm('Are you sure you want to run the AI sync? This may take some time.')) return;
+        setIsSubmitting(true);
+        setError(null);
+        try {
+            const resp = await aiServiceApi.syncMenu(editModal.id, useStore.getState().aiConfig?.apiKey || '');
+            alert(resp.data.message || 'Sync initiated successfully!');
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.error || 'Failed to sync AI Upsell Data.');
         } finally {
             setIsSubmitting(false);
         }
@@ -644,15 +660,26 @@ const SuperAdminView: React.FC = () => {
                                         <div className="font-mono text-[10px] text-slate-400">Username: {editModal.username}</div>
                                         <div className="font-mono text-[10px] text-slate-400">Slug: /r/{generateSlug(editForm.name)}</div>
                                     </div>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">AI Upsell</span>
-                                        <input
-                                            type="checkbox"
-                                            checked={editForm.aiUpsellEnabled}
-                                            onChange={e => setEditForm(prev => ({ ...prev, aiUpsellEnabled: e.target.checked }))}
-                                            className="w-4 h-4 text-indigo-600 rounded bg-slate-200 border-slate-300 focus:ring-indigo-500"
-                                        />
-                                    </label>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">AI Upsell</span>
+                                            <input
+                                                type="checkbox"
+                                                checked={editForm.aiUpsellEnabled}
+                                                onChange={e => setEditForm(prev => ({ ...prev, aiUpsellEnabled: e.target.checked }))}
+                                                className="w-4 h-4 text-indigo-600 rounded bg-slate-200 border-slate-300 focus:ring-indigo-500"
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={handleSyncMenu}
+                                            disabled={isSubmitting || !editForm.aiUpsellEnabled}
+                                            className={`text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold transition-all ${isSubmitting ? 'opacity-50' : 'hover:bg-indigo-200'}`}
+                                            title="Regenerate pre-computed item associations using AI"
+                                        >
+                                            <i className="fas fa-sync-alt mr-1"></i> Sync DB
+                                        </button>
+                                    </div>
                                 </div>
                                 <button
                                     type="submit"

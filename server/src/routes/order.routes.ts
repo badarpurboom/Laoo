@@ -28,7 +28,8 @@ router.get('/:restaurantId', async (req, res) => {
                 name: d.menuItem.name,
                 price: d.price,
                 quantity: d.quantity,
-                portionType: d.portion || 'full'
+                portionType: d.portion || 'full',
+                isUpsell: d.isUpsell || false
             }))
         }));
 
@@ -53,7 +54,8 @@ router.post('/', async (req, res) => {
             menuItemId: i.id || i.menuItemId,
             quantity: i.quantity,
             price: i.price,
-            portion: i.portionType || 'full'
+            portion: i.portionType || 'full',
+            isUpsell: i.isUpsell || false
         }));
 
         console.log("Details to create:", orderDetails);
@@ -93,7 +95,8 @@ router.post('/', async (req, res) => {
                 name: d.menuItem.name,
                 price: d.price,
                 quantity: d.quantity,
-                portionType: d.portion || 'full'
+                portionType: d.portion || 'full',
+                isUpsell: d.isUpsell || false
             }))
         };
         res.json(formatted);
@@ -125,7 +128,8 @@ router.patch('/:id/status', async (req, res) => {
                 name: d.menuItem.name,
                 price: d.price,
                 quantity: d.quantity,
-                portionType: d.portion || 'full'
+                portionType: d.portion || 'full',
+                isUpsell: d.isUpsell || false
             }))
         };
         res.json(formatted);
@@ -156,7 +160,8 @@ router.patch('/:id/payment-status', async (req, res) => {
                 name: d.menuItem.name,
                 price: d.price,
                 quantity: d.quantity,
-                portionType: d.portion || 'full'
+                portionType: d.portion || 'full',
+                isUpsell: d.isUpsell || false
             }))
         };
         res.json(formatted);
