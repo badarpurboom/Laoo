@@ -343,6 +343,10 @@ export const useStore = create<AppState>()(
             takeawayEnabled: settings.orderPreferences?.takeaway,
             deliveryEnabled: settings.orderPreferences?.delivery,
             requireTableNumber: settings.orderPreferences?.requireTableNumber,
+            aiUpsellPopupEnabled: settings.aiUpsellPopupEnabled,
+            popupMode: settings.popupMode,
+            popupItem1Id: settings.popupItem1Id,
+            popupItem2Id: settings.popupItem2Id
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData);
