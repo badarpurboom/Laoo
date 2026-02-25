@@ -113,6 +113,7 @@ export const useStore = create<AppState>()(
         maxAiDiscountPct: 15,
         mysteryBoxEnabled: false,
         mysteryBoxPrice: 49,
+        mysteryBoxItemIds: [],
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -229,6 +230,7 @@ export const useStore = create<AppState>()(
                   maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
                   mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
                   mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
+                  mysteryBoxItemIds: restaurant.mysteryBoxItemIds ? JSON.parse(restaurant.mysteryBoxItemIds) : [],
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -280,6 +282,7 @@ export const useStore = create<AppState>()(
               maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
               mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
               mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
+              mysteryBoxItemIds: restaurant.mysteryBoxItemIds ? JSON.parse(restaurant.mysteryBoxItemIds) : [],
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -378,10 +381,11 @@ export const useStore = create<AppState>()(
             aiMarketingEnabled: settings.aiMarketingEnabled,
             maxAiDiscountPct: settings.maxAiDiscountPct,
             mysteryBoxEnabled: settings.mysteryBoxEnabled,
-            mysteryBoxPrice: settings.mysteryBoxPrice
+            mysteryBoxPrice: settings.mysteryBoxPrice,
+            mysteryBoxItemIds: JSON.stringify(settings.mysteryBoxItemIds || []) as any
           };
           try {
-            await restaurantService.update(activeRestaurantId, updateData);
+            await restaurantService.update(activeRestaurantId, updateData as any);
           } catch (err) {
             console.error("Failed to persist settings", err);
           }

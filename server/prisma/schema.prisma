@@ -55,6 +55,7 @@ model Restaurant {
   maxAiDiscountPct   Float   @default(15.0)
   mysteryBoxEnabled  Boolean @default(false)
   mysteryBoxPrice    Float   @default(49.0)
+  mysteryBoxItemIds  String? // JSON array of menu item IDs for the mystery box pool
   
   createdAt   DateTime   @default(now())
   categories  Category[]

@@ -62,6 +62,7 @@ export interface Restaurant {
   maxAiDiscountPct?: number;
   mysteryBoxEnabled?: boolean;
   mysteryBoxPrice?: number;
+  mysteryBoxItemIds?: string[];
 }
 
 export interface Banner {
@@ -154,6 +155,7 @@ export interface RestaurantSettings {
   maxAiDiscountPct?: number;
   mysteryBoxEnabled?: boolean;
   mysteryBoxPrice?: number;
+  mysteryBoxItemIds?: string[];
 }
 
 export interface MarketingRule {

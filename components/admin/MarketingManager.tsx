@@ -456,18 +456,59 @@ const MarketingManager: React.FC = () => {
                             </div>
                         </div>
                         {settings.mysteryBoxEnabled && (
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Mystery Box Price (₹)</label>
-                                <input
-                                    type="number"
-                                    value={settings.mysteryBoxPrice || 0}
-                                    onChange={(e) => updateSettings({ ...settings, mysteryBoxPrice: Number(e.target.value) })}
-                                    className="w-full sm:w-1/2 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                                />
-                                <p className="text-xs text-slate-400 mt-2">Display a tempting "Surprise Item" at checkout.</p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Mystery Box Price (₹)</label>
+                                    <input
+                                        type="number"
+                                        value={settings.mysteryBoxPrice || 0}
+                                        onChange={(e) => updateSettings({ ...settings, mysteryBoxPrice: Number(e.target.value) })}
+                                        className="w-full sm:w-1/2 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                                        Mystery Box Item Pool <span className="text-orange-500">({(settings.mysteryBoxItemIds || []).length}/5 selected)</span>
+                                    </label>
+                                    <p className="text-xs text-slate-400 mb-3">Select up to 5 items. A random one will be revealed to the customer after checkout.</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                                        {menuItems.filter(m => m.restaurantId === settings.restaurantId).map(item => {
+                                            const isSelected = (settings.mysteryBoxItemIds || []).includes(item.id);
+                                            const poolFull = (settings.mysteryBoxItemIds || []).length >= 5;
+                                            return (
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => {
+                                                        const currentPool = settings.mysteryBoxItemIds || [];
+                                                        const newPool = isSelected
+                                                            ? currentPool.filter(id => id !== item.id)
+                                                            : poolFull ? currentPool : [...currentPool, item.id];
+                                                        updateSettings({ ...settings, mysteryBoxItemIds: newPool });
+                                                    }}
+                                                    disabled={!isSelected && poolFull}
+                                                    className={`flex items-center gap-2 p-2 rounded-lg border text-left transition-all text-xs ${isSelected ? 'border-orange-400 bg-orange-50 text-orange-800' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'} ${!isSelected && poolFull ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                                >
+                                                    <img src={item.imageUrl} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold truncate">{item.name}</p>
+                                                        <p className="text-slate-400">₹{item.fullPrice}</p>
+                                                    </div>
+                                                    {isSelected && <i className="fas fa-check-circle text-orange-500 flex-shrink-0"></i>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {(settings.mysteryBoxItemIds || []).length === 0 && (
+                                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 p-2 rounded-lg mt-2">
+                                            <i className="fas fa-exclamation-triangle mr-1"></i>
+                                            No items selected! The system will randomly pick from all available menu items.
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
+
 
                     {/* 3. AI Contextual Marketing */}
                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">

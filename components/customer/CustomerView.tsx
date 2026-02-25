@@ -427,7 +427,11 @@ const CustomerView: React.FC = () => {
       let willShowMysteryBounty = false;
 
       if (mysteryBoxIndex !== -1 && settings.mysteryBoxEnabled) {
-        let potentialItems = tenantMenuItems.filter(m => m.isAvailable && m.fullPrice >= (settings.mysteryBoxPrice || 49));
+        // Use admin-configured pool first, fall back to all available items
+        const adminPool = settings.mysteryBoxItemIds || [];
+        let potentialItems = adminPool.length > 0
+          ? tenantMenuItems.filter(m => adminPool.includes(m.id) && m.isAvailable)
+          : tenantMenuItems.filter(m => m.isAvailable && m.fullPrice >= (settings.mysteryBoxPrice || 49));
         if (potentialItems.length === 0) potentialItems = tenantMenuItems.filter(m => m.isAvailable);
 
         if (potentialItems.length > 0) {
