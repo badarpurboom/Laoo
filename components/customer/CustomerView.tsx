@@ -850,7 +850,7 @@ const CustomerView: React.FC = () => {
           <div className="fixed top-20 right-4 z-50 pointer-events-auto shadow-2xl rounded-2xl" style={{ animation: 'bounce-fade-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}>
             <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 max-w-[280px] sm:max-w-sm relative overflow-hidden ring-4 ring-slate-900/50">
               <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-rose-500/20 to-pink-500/20 rounded-full blur-2xl pointer-events-none"></div>
-              <button onClick={handleSkipPopup1} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-xs transition-colors z-10">
+              <button onClick={handleSkipPopup1} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-sm transition-colors z-20">
                 <i className="fas fa-times"></i>
               </button>
               <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
@@ -884,7 +884,7 @@ const CustomerView: React.FC = () => {
           <div className="fixed bottom-24 left-4 z-50 pointer-events-auto shadow-2xl rounded-2xl" style={{ animation: 'bounce-fade-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}>
             <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 max-w-[280px] sm:max-w-sm relative overflow-hidden ring-4 ring-slate-900/50">
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-tr from-amber-500/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
-              <button onClick={handleSkipPopup2} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-xs transition-colors z-10">
+              <button onClick={handleSkipPopup2} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-sm transition-colors z-20">
                 <i className="fas fa-times"></i>
               </button>
               <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
