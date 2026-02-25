@@ -256,6 +256,7 @@ const CustomerView: React.FC = () => {
   // Mystery Box Reveal State
   const [revealedMysteryItem, setRevealedMysteryItem] = useState<{ name: string, imageUrl: string, price: number } | null>(null);
   const [isMysteryBoxOpened, setIsMysteryBoxOpened] = useState(false);
+  const [showMysteryBounty, setShowMysteryBounty] = useState(false);
 
   // Auto-select valid order type if current one is disabled
   React.useEffect(() => {
@@ -451,8 +452,7 @@ const CustomerView: React.FC = () => {
             imageUrl: randomItem.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48',
             price: randomItem.fullPrice
           });
-          setCheckoutStep('mystery_reveal' as any); // Use a temporary step for the reveal
-          return;
+          // Do not show reveal in cart. Just proceed to success first.
         }
       }
 
@@ -467,12 +467,26 @@ const CustomerView: React.FC = () => {
     setShowCart(false);
     setCheckoutStep('cart');
     setCart([]);
-    setRevealedMysteryItem(null);
     setIsMysteryBoxOpened(false);
-    // Save table number if dine-in
+
+    if (revealedMysteryItem) {
+      // Trigger the Subway surf sequence on the main screen!
+      setShowMysteryBounty(true);
+    } else {
+      // Normal close logic
+      if (orderType === 'dine-in' && tableOrAddress) {
+        localStorage.setItem('bistro_table_number', tableOrAddress);
+        window.location.reload(); // Simple reload to refresh bill status
+      }
+    }
+  };
+
+  const handleCloseMysteryBounty = () => {
+    setShowMysteryBounty(false);
+    setRevealedMysteryItem(null);
     if (orderType === 'dine-in' && tableOrAddress) {
       localStorage.setItem('bistro_table_number', tableOrAddress);
-      window.location.reload(); // Simple reload to refresh bill status
+      window.location.reload();
     }
   };
 
@@ -868,59 +882,6 @@ const CustomerView: React.FC = () => {
                 </div>
               )}
 
-              {checkoutStep === 'mystery_reveal' as any && revealedMysteryItem && (
-                <div className="flex-1 flex flex-col items-center justify-center py-6 px-4 animate-in fade-in duration-500 min-h-[400px]">
-                  {!isMysteryBoxOpened ? (
-                    <div className="flex flex-col items-center justify-center cursor-pointer group" onClick={() => setIsMysteryBoxOpened(true)}>
-                      <h2 className="text-2xl font-black text-slate-800 mb-8 text-center animate-pulse">
-                        You got a Mystery Box! 🎁
-                      </h2>
-                      <div className="relative mb-8">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-amber-400 to-rose-500 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-                        <div className="w-48 h-48 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-2xl relative z-10 animate-shake flex items-center justify-center border-4 border-white/20 group-hover:scale-105 transition-transform duration-300">
-                          <i className="fas fa-question text-6xl text-white/90 drop-shadow-md"></i>
-                        </div>
-                      </div>
-                      <button className="bg-gradient-to-r from-orange-500 to-rose-500 text-white px-8 py-4 rounded-full font-black shadow-xl shadow-rose-500/30 hover:shadow-rose-500/50 hover:-translate-y-1 transition-all flex items-center gap-3 text-lg">
-                        Tap to Open
-                        <i className="fas fa-hand-pointer animate-bounce"></i>
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center animate-in zoom-in duration-500">
-                      <div className="relative mb-6">
-                        <div className="absolute -inset-10 animate-[spin_4s_linear_infinite]">
-                          <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-20"></div>
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-tr from-amber-400 to-rose-500 rounded-full blur-2xl opacity-40 animate-pulse"></div>
-                        <img
-                          src={revealedMysteryItem.imageUrl}
-                          alt="Mystery Item"
-                          className="w-44 h-44 rounded-full object-cover border-4 border-white shadow-2xl relative z-10 animate-jump-reveal"
-                        />
-                        <div className="absolute -bottom-4 -right-4 bg-green-500 text-white text-sm font-black px-4 py-1.5 rounded-full shadow-lg z-20 transform rotate-12 border-2 border-white">
-                          Worth ₹{revealedMysteryItem.price}!
-                        </div>
-                      </div>
-
-                      <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 mb-2 mt-4 text-center">
-                        It's {revealedMysteryItem.name}! 🎉
-                      </h2>
-                      <p className="text-slate-500 text-center mb-8 px-4 font-medium">
-                        What a steal! This delicious surprise has been added to your confirmed order.
-                      </p>
-
-                      <button
-                        onClick={() => setCheckoutStep('success')}
-                        className="w-full max-w-[250px] py-4 bg-slate-800 text-white rounded-xl font-bold shadow-xl shadow-slate-200 hover:bg-slate-900 transition-all active:scale-95 flex items-center justify-center gap-2"
-                      >
-                        Continue to Receipt <i className="fas fa-arrow-right"></i>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {checkoutStep === 'success' && (
                 <div className="text-center py-10">
                   <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -938,7 +899,7 @@ const CustomerView: React.FC = () => {
               )}
             </div>
 
-            {checkoutStep !== 'success' && checkoutStep !== 'mystery_reveal' as any && cart.length > 0 && (
+            {checkoutStep !== 'success' && cart.length > 0 && (
               <div className="p-6 border-t bg-slate-50">
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-slate-600 text-sm">
@@ -1104,6 +1065,77 @@ const CustomerView: React.FC = () => {
         );
       })()}
 
+      {/* GLOBAL / HOME SCREEN MYSTERY BOX REVEAL */}
+      {showMysteryBounty && revealedMysteryItem && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 backdrop-blur-md pointer-events-auto">
+          {!isMysteryBoxOpened ? (
+            <div className="flex flex-col items-center justify-center cursor-pointer group px-4 animate-bounce-fade-up" onClick={() => setIsMysteryBoxOpened(true)}>
+              <h2 className="text-3xl font-black text-white mb-10 text-center drop-shadow-lg">
+                You've unlocked a <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">Mystery Box! 🎁</span>
+              </h2>
+              <div className="relative mb-12">
+                <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/50 to-rose-500/50 rounded-full blur-[80px] animate-pulse"></div>
+                <div className="w-56 h-56 bg-gradient-to-br from-indigo-500 border-[8px] border-white/20 to-purple-700 rounded-3xl shadow-[0_0_50px_rgba(236,72,153,0.5)] relative z-10 animate-shake flex items-center justify-center transition-transform duration-300">
+                  <i className="fas fa-question text-8xl text-white drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)] opacity-90 animate-pulse"></i>
+                </div>
+              </div>
+              <button className="bg-gradient-to-r from-orange-500 to-rose-600 text-white px-10 py-5 rounded-full font-black shadow-[0_10px_40px_rgba(244,63,94,0.5)] active:scale-95 transition-all flex items-center gap-3 text-xl tracking-wide uppercase">
+                Tap To Open
+                <i className="fas fa-hand-pointer animate-bounce text-2xl"></i>
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center px-4 w-full h-full">
+              {/* Confetti Explosion Effect via CSS + Elements */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                {[...Array(20)].map((_, i) => (
+                  <div key={i} className="absolute w-3 h-8 bg-orange-500 opacity-80"
+                    style={{
+                      left: `${Math.random() * 100}%`, top: '-5%',
+                      transform: `rotate(${Math.random() * 360}deg)`,
+                      animation: `fall ${1 + Math.random() * 2}s linear forwards`,
+                      backgroundColor: ['#f97316', '#e11d48', '#8b5cf6', '#3b82f6'][Math.floor(Math.random() * 4)]
+                    }}>
+                  </div>
+                ))}
+              </div>
+
+              <div className="relative z-10 mb-8 mt-10">
+                {/* Spinning Light Rays */}
+                <div className="absolute -inset-[100%] animate-[spin_8s_linear_infinite] flex items-center justify-center pointer-events-none">
+                  <div className="w-[800px] h-[800px] bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] opacity-10 blur-md"></div>
+                  <div className="absolute w-[800px] h-[800px] bg-[conic-gradient(from_45deg,transparent_0_340deg,white_360deg)] opacity-10 blur-2xl"></div>
+                </div>
+
+                <div className="absolute inset-0 bg-gradient-to-tr from-amber-400 to-rose-500 rounded-full blur-[60px] opacity-70 animate-pulse"></div>
+                <img
+                  src={revealedMysteryItem.imageUrl}
+                  alt="Mystery Item"
+                  className="w-56 h-56 md:w-64 md:h-64 rounded-[2.5rem] object-cover border-[6px] border-white shadow-2xl relative z-10 animate-jump-reveal bg-white"
+                />
+                <div className="absolute -bottom-6 -right-6 bg-green-500 text-white text-lg font-black px-6 py-2 rounded-full shadow-2xl z-20 transform -rotate-6 border-4 border-white animate-bounce-custom">
+                  Worth ₹{revealedMysteryItem.price}!
+                </div>
+              </div>
+
+              <h2 className="text-4xl md:text-5xl font-black text-white mb-3 mt-4 text-center z-10 animate-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both drop-shadow-xl tracking-tight">
+                It's <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-rose-400">{revealedMysteryItem.name}!</span> 🎉
+              </h2>
+              <p className="text-slate-300 text-center mb-10 px-4 text-sm md:text-base font-medium z-10 max-w-sm animate-in fade-in duration-1000 delay-500 fill-mode-both">
+                Surprise! This item has been added to your confirmed order. The Chef hopes you love it!
+              </p>
+
+              <button
+                onClick={handleCloseMysteryBounty}
+                className="w-full max-w-[300px] py-4 md:py-5 bg-white text-slate-900 rounded-2xl font-black text-lg shadow-[0_10px_40px_rgba(255,255,255,0.2)] hover:bg-slate-100 transition-all active:scale-95 flex items-center justify-center gap-3 z-10 uppercase tracking-widest animate-in fade-in zoom-in duration-500 delay-1000 fill-mode-both"
+              >
+                Awesome! <i className="fas fa-check-circle text-green-500"></i>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <style>{`
         @keyframes bounce-fade-in {
           0% { transform: translateX(100px) scale(0.9); opacity: 0; }
@@ -1124,14 +1156,19 @@ const CustomerView: React.FC = () => {
             75% { transform: rotate(-5deg) translateY(5px); }
         }
         @keyframes jump-reveal {
-            0% { transform: scale(0.5) translateY(100px) rotate(-180deg); opacity: 0; }
-            60% { transform: scale(1.2) translateY(-20px) rotate(10deg); opacity: 1; }
-            80% { transform: scale(0.9) translateY(5px) rotate(-5deg); }
-            100% { transform: scale(1) translateY(0) rotate(0deg); }
+            0% { transform: scale(0.1) translateY(200px) rotate(-180deg); opacity: 0; box-shadow: 0 0 0 rgba(0,0,0,0); }
+            50% { transform: scale(1.3) translateY(-50px) rotate(15deg); opacity: 1; box-shadow: 0 50px 100px rgba(0,0,0,0.5); }
+            70% { transform: scale(0.9) translateY(10px) rotate(-5deg); }
+            100% { transform: scale(1) translateY(0) rotate(0deg); box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
         }
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(1000px) rotate(720deg); opacity: 0; }
+        }
+        .animate-bounce-fade-up { animation: bounce-fade-up 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
         .animate-bounce-custom { animation: bounce-custom 2s infinite; }
-        .animate-shake { animation: shake 2s infinite ease-in-out; }
-        .animate-jump-reveal { animation: jump-reveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .animate-shake { animation: shake 1.5s infinite ease-in-out; }
+        .animate-jump-reveal { animation: jump-reveal 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
       `}</style>
     </div>
   );
