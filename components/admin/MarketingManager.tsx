@@ -13,14 +13,16 @@ const MarketingManager: React.FC = () => {
     const [isAddingViaUrl, setIsAddingViaUrl] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [isPickingAI, setIsPickingAI] = useState(false);
-    const [customPopupText, setCustomPopupText] = useState(settings.popupText || '');
+    const [popup1Text, setPopup1Text] = useState(settings.popup1Text || '');
+    const [popup2Text, setPopup2Text] = useState(settings.popup2Text || '');
 
     useEffect(() => {
-        setCustomPopupText(settings.popupText || '');
-    }, [settings.popupText]);
+        setPopup1Text(settings.popup1Text || '');
+        setPopup2Text(settings.popup2Text || '');
+    }, [settings.popup1Text, settings.popup2Text]);
 
-    const handleSaveTagline = () => {
-        updateSettings({ ...settings, popupText: customPopupText });
+    const handleSaveTaglines = () => {
+        updateSettings({ ...settings, popup1Text, popup2Text });
     };
 
     useEffect(() => {
@@ -250,32 +252,53 @@ const MarketingManager: React.FC = () => {
 
                 {settings.aiUpsellPopupEnabled && (
                     <div className="p-6 bg-slate-50/50">
-                        {/* Custom Tagline */}
+                        {/* Custom Taglines */}
                         <div className="mb-6 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-                            <div className="flex justify-between items-start mb-2">
+                            <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700">Popup Tagline</label>
-                                    <p className="text-xs text-slate-500">This message appears on all AI Flash Popups.</p>
+                                    <label className="block text-sm font-bold text-slate-700">Popup Taglines</label>
+                                    <p className="text-xs text-slate-500">Customize the message for each popup.</p>
                                 </div>
                                 <button
-                                    onClick={handleSaveTagline}
-                                    disabled={customPopupText === (settings.popupText || '')}
+                                    onClick={handleSaveTaglines}
+                                    disabled={popup1Text === (settings.popup1Text || '') && popup2Text === (settings.popup2Text || '')}
                                     className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Save
                                 </button>
                             </div>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    maxLength={60}
-                                    value={customPopupText}
-                                    onChange={(e) => setCustomPopupText(e.target.value)}
-                                    placeholder="Abhi bhi confused ho? Ek baar mujhe try karo!"
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 pr-16"
-                                />
-                                <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold ${customPopupText.length >= 60 ? 'text-red-500' : 'text-slate-400'}`}>
-                                    {customPopupText.length}/60
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1">Popup 1 Tagline</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            maxLength={60}
+                                            value={popup1Text}
+                                            onChange={(e) => setPopup1Text(e.target.value)}
+                                            placeholder="🌟 Customer Favorite! Try it today."
+                                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 pr-16"
+                                        />
+                                        <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold ${popup1Text.length >= 60 ? 'text-red-500' : 'text-slate-400'}`}>
+                                            {popup1Text.length}/60
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1">Popup 2 Tagline</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            maxLength={60}
+                                            value={popup2Text}
+                                            onChange={(e) => setPopup2Text(e.target.value)}
+                                            placeholder="🔥 Chef's Secret! Abhi bhi confused ho?"
+                                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 pr-16"
+                                        />
+                                        <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold ${popup2Text.length >= 60 ? 'text-red-500' : 'text-slate-400'}`}>
+                                            {popup2Text.length}/60
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -105,7 +105,8 @@ export const useStore = create<AppState>()(
         popupMode: 'MANUAL',
         popupItem1Id: null,
         popupItem2Id: null,
-        popupText: null,
+        popup1Text: null,
+        popup2Text: null,
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -214,7 +215,8 @@ export const useStore = create<AppState>()(
                   popupMode: restaurant.popupMode || 'MANUAL',
                   popupItem1Id: restaurant.popupItem1Id || null,
                   popupItem2Id: restaurant.popupItem2Id || null,
-                  popupText: restaurant.popupText || null,
+                  popup1Text: restaurant.popup1Text || null,
+                  popup2Text: restaurant.popup2Text || null,
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -258,7 +260,8 @@ export const useStore = create<AppState>()(
               popupMode: restaurant.popupMode || 'MANUAL',
               popupItem1Id: restaurant.popupItem1Id || null,
               popupItem2Id: restaurant.popupItem2Id || null,
-              popupText: restaurant.popupText || null,
+              popup1Text: restaurant.popup1Text || null,
+              popup2Text: restaurant.popup2Text || null,
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -350,7 +353,8 @@ export const useStore = create<AppState>()(
             popupMode: settings.popupMode,
             popupItem1Id: settings.popupItem1Id,
             popupItem2Id: settings.popupItem2Id,
-            popupText: settings.popupText
+            popup1Text: settings.popup1Text,
+            popup2Text: settings.popup2Text
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData);

@@ -45,7 +45,8 @@ model Restaurant {
   popupMode          String  @default("MANUAL") // "MANUAL" or "AI"
   popupItem1Id       String?
   popupItem2Id       String?
-  popupText          String?
+  popup1Text         String?
+  popup2Text         String?
   
   createdAt   DateTime   @default(now())
   categories  Category[]

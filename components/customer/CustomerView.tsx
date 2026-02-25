@@ -848,28 +848,24 @@ const CustomerView: React.FC = () => {
         if (!item || !item.isAvailable || cart.find(i => i.id === item.id)) return null;
         return (
           <div className="fixed top-20 right-4 z-50 pointer-events-auto shadow-2xl rounded-2xl" style={{ animation: 'bounce-fade-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}>
-            <div className="bg-white rounded-2xl p-4 border-2 border-indigo-100 max-w-[280px] sm:max-w-sm relative overflow-hidden ring-4 ring-white/50">
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
-              <button onClick={handleSkipPopup1} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full text-xs transition-colors z-10">
+            <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 max-w-[280px] sm:max-w-sm relative overflow-hidden ring-4 ring-slate-900/50">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-rose-500/20 to-pink-500/20 rounded-full blur-2xl pointer-events-none"></div>
+              <button onClick={handleSkipPopup1} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-xs transition-colors z-10">
                 <i className="fas fa-times"></i>
               </button>
-              <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                </span>
-                AI Recommends
+              <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
+                <i className="fas fa-star text-rose-400 animate-pulse"></i> Top Rated
               </h4>
               <div className="flex gap-4 relative z-10">
-                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm border border-slate-100 shrink-0" />
+                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-800 leading-tight mb-0.5 truncate">{item.name}</p>
-                  <p className="text-[11px] text-slate-600 mb-2 leading-snug font-medium">{settings.popupText || "Abhi bhi confused ho? Ek baar mujhe try karo!"}</p>
+                  <p className="text-sm font-bold text-white leading-tight mb-0.5 truncate">{item.name}</p>
+                  <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popup1Text || "🌟 Customer Favorite! Try it today."}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-sm font-black text-orange-600">₹{item.fullPrice}</span>
+                    <span className="text-sm font-black text-rose-400">₹{item.fullPrice}</span>
                     <button
                       onClick={() => { addToCart(item, 'full', true); setShowPopup1(false); }}
-                      className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-indigo-500/30 hover:bg-indigo-700 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
+                      className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-rose-500/20 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
                     >
                       Add <i className="fas fa-shopping-cart text-[10px]"></i>
                     </button>
@@ -898,7 +894,7 @@ const CustomerView: React.FC = () => {
                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white leading-tight mb-0.5 truncate">{item.name}</p>
-                  <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popupText || "Abhi bhi confused ho? Ek baar mujhe try karo!"}</p>
+                  <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popup2Text || "🔥 Chef's Secret! Abhi bhi confused ho?"}</p>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-black text-amber-400">₹{item.fullPrice}</span>
                     <button
