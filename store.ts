@@ -16,6 +16,19 @@ import {
 } from './types';
 import { restaurantService, menuService, orderService, aiServiceApi, bannerService } from './services/api';
 
+// Safe JSON parsing helper
+const safeParseItemIds = (data: any): string[] => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    console.error("Parse error:", e);
+    return [];
+  }
+};
+
 interface AppState {
   // Menu
   categories: Category[];
@@ -233,10 +246,10 @@ export const useStore = create<AppState>()(
                   maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
                   mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
                   mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
-                  mysteryBoxItemIds: restaurant.mysteryBoxItemIds ? JSON.parse(restaurant.mysteryBoxItemIds) : [],
+                  mysteryBoxItemIds: safeParseItemIds(restaurant.mysteryBoxItemIds),
                   dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
                   dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
-                  dessertPromptItemIds: restaurant.dessertPromptItemIds ? JSON.parse(restaurant.dessertPromptItemIds) : [],
+                  dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -288,10 +301,10 @@ export const useStore = create<AppState>()(
               maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
               mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
               mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
-              mysteryBoxItemIds: restaurant.mysteryBoxItemIds ? JSON.parse(restaurant.mysteryBoxItemIds) : [],
+              mysteryBoxItemIds: safeParseItemIds(restaurant.mysteryBoxItemIds),
               dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
               dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
-              dessertPromptItemIds: restaurant.dessertPromptItemIds ? JSON.parse(restaurant.dessertPromptItemIds) : [],
+              dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
