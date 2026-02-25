@@ -1029,6 +1029,55 @@ const CustomerView: React.FC = () => {
                   Please ask the waiter to bring the bill or pay at the counter.
                 </p>
               </div>
+
+              {/* 🔄 Re-Order Nudge */}
+              {sessionBill.items.length > 0 && (
+                <div className="mt-6 pt-5 border-t-2 border-dashed border-orange-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                      <i className="fas fa-redo text-orange-500 text-xs"></i>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800">Chahiye aur? 🍽️</h4>
+                      <p className="text-[10px] text-slate-400">Apni favourite dish dobara order karo!</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {sessionBill.items
+                      .filter((item, idx, arr) => arr.findIndex(i => i.name === item.name) === idx) // deduplicate
+                      .slice(0, 4) // show max 4 items
+                      .map((item, idx) => {
+                        const menuItem = menuItems.find(m => m.name === item.name);
+                        return (
+                          <div key={idx} className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {menuItem?.imageUrl && (
+                                <img src={menuItem.imageUrl} className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-800 truncate">{item.name}</p>
+                                <p className="text-[10px] text-orange-500 font-semibold">₹{item.price}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                if (menuItem) {
+                                  addToCart(menuItem, item.portionType as any || 'full', true, 'REORDER_NUDGE');
+                                  setShowBill(false);
+                                  setIsCartOpen(true);
+                                }
+                              }}
+                              disabled={!menuItem}
+                              className="ml-2 shrink-0 bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-orange-600 active:scale-95 transition-all flex items-center gap-1 disabled:opacity-40"
+                            >
+                              <i className="fas fa-plus text-[8px]"></i> Add
+                            </button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-4 bg-slate-50 border-t">

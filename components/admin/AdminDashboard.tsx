@@ -73,7 +73,8 @@ const AdminDashboard: React.FC = () => {
     let popupRev = 0;
     let mysteryBoxRev = 0;
     let aiCrossSellRev = 0;
-    let rewardCount = 0; // Number of times reward was given
+    let rewardCount = 0;
+    let reorderNudgeRev = 0; // Revenue from re-order nudge
 
     tenantOrders.forEach(order => {
       if (order.status === 'cancelled') return;
@@ -81,15 +82,15 @@ const AdminDashboard: React.FC = () => {
         if (item.marketingSource === 'POPUP') popupRev += (item.price * item.quantity);
         if (item.marketingSource === 'MYSTERY_BOX') mysteryBoxRev += (item.price * item.quantity);
         if (item.marketingSource === 'AI_CROSS_SELL') aiCrossSellRev += (item.price * item.quantity);
+        if (item.marketingSource === 'REORDER_NUDGE') reorderNudgeRev += (item.price * item.quantity);
         if (item.marketingSource === 'REWARD') {
-          rewardCount += item.quantity; // Count how many free reward items were given
+          rewardCount += item.quantity;
         }
-        // Fallback for older upsell items before tagging
         if (item.isUpsell && !item.marketingSource) aiCrossSellRev += (item.price * item.quantity);
       });
     });
 
-    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCount, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev };
+    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCount, reorderNudgeRev, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev + reorderNudgeRev };
   }, [tenantOrders]);
 
   const topAIItemsData = useMemo(() => {
@@ -216,6 +217,19 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
               <span className="font-black text-emerald-600">{aovMetrics.rewardCount} <span className="text-xs font-semibold text-emerald-500">times</span></span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                  <i className="fas fa-redo"></i>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">Re-Order Nudge</h4>
+                  <p className="text-[10px] text-slate-500">Dine-in repeat orders from bill screen</p>
+                </div>
+              </div>
+              <span className="font-black text-amber-600">₹{aovMetrics.reorderNudgeRev.toFixed(0)}</span>
             </div>
           </div>
         </div>
