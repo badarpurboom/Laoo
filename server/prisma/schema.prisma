@@ -56,6 +56,9 @@ model Restaurant {
   mysteryBoxEnabled  Boolean @default(false)
   mysteryBoxPrice    Float   @default(49.0)
   mysteryBoxItemIds  String? // JSON array of menu item IDs for the mystery box pool
+  dessertPromptEnabled  Boolean @default(false)
+  dessertPromptMinutes  Int     @default(15)
+  dessertPromptItemIds  String? // JSON array of up to 3 dessert/drink item IDs
   
   createdAt   DateTime   @default(now())
   categories  Category[]

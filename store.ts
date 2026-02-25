@@ -114,6 +114,9 @@ export const useStore = create<AppState>()(
         mysteryBoxEnabled: false,
         mysteryBoxPrice: 49,
         mysteryBoxItemIds: [],
+        dessertPromptEnabled: false,
+        dessertPromptMinutes: 15,
+        dessertPromptItemIds: [],
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -231,6 +234,9 @@ export const useStore = create<AppState>()(
                   mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
                   mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
                   mysteryBoxItemIds: restaurant.mysteryBoxItemIds ? JSON.parse(restaurant.mysteryBoxItemIds) : [],
+                  dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
+                  dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
+                  dessertPromptItemIds: restaurant.dessertPromptItemIds ? JSON.parse(restaurant.dessertPromptItemIds) : [],
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -283,6 +289,9 @@ export const useStore = create<AppState>()(
               mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
               mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
               mysteryBoxItemIds: restaurant.mysteryBoxItemIds ? JSON.parse(restaurant.mysteryBoxItemIds) : [],
+              dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
+              dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
+              dessertPromptItemIds: restaurant.dessertPromptItemIds ? JSON.parse(restaurant.dessertPromptItemIds) : [],
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -382,7 +391,10 @@ export const useStore = create<AppState>()(
             maxAiDiscountPct: settings.maxAiDiscountPct,
             mysteryBoxEnabled: settings.mysteryBoxEnabled,
             mysteryBoxPrice: settings.mysteryBoxPrice,
-            mysteryBoxItemIds: JSON.stringify(settings.mysteryBoxItemIds || []) as any
+            mysteryBoxItemIds: JSON.stringify(settings.mysteryBoxItemIds || []) as any,
+            dessertPromptEnabled: settings.dessertPromptEnabled,
+            dessertPromptMinutes: settings.dessertPromptMinutes,
+            dessertPromptItemIds: JSON.stringify(settings.dessertPromptItemIds || []) as any
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData as any);

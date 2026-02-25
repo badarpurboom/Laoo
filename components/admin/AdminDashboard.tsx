@@ -74,7 +74,8 @@ const AdminDashboard: React.FC = () => {
     let mysteryBoxRev = 0;
     let aiCrossSellRev = 0;
     let rewardCount = 0;
-    let reorderNudgeRev = 0; // Revenue from re-order nudge
+    let reorderNudgeRev = 0;
+    let dessertPromptRev = 0; // Revenue from post-meal dessert prompts
 
     tenantOrders.forEach(order => {
       if (order.status === 'cancelled') return;
@@ -83,6 +84,7 @@ const AdminDashboard: React.FC = () => {
         if (item.marketingSource === 'MYSTERY_BOX') mysteryBoxRev += (item.price * item.quantity);
         if (item.marketingSource === 'AI_CROSS_SELL') aiCrossSellRev += (item.price * item.quantity);
         if (item.marketingSource === 'REORDER_NUDGE') reorderNudgeRev += (item.price * item.quantity);
+        if (item.marketingSource === 'DESSERT_PROMPT') dessertPromptRev += (item.price * item.quantity);
         if (item.marketingSource === 'REWARD') {
           rewardCount += item.quantity;
         }
@@ -90,7 +92,7 @@ const AdminDashboard: React.FC = () => {
       });
     });
 
-    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCount, reorderNudgeRev, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev + reorderNudgeRev };
+    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCount, reorderNudgeRev, dessertPromptRev, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev + reorderNudgeRev + dessertPromptRev };
   }, [tenantOrders]);
 
   const topAIItemsData = useMemo(() => {
@@ -230,6 +232,19 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
               <span className="font-black text-amber-600">₹{aovMetrics.reorderNudgeRev.toFixed(0)}</span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-pink-50 rounded-xl border border-pink-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0">
+                  <i className="fas fa-ice-cream"></i>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">Dessert Prompt</h4>
+                  <p className="text-[10px] text-slate-500">Post-meal dine-in upsell revenue</p>
+                </div>
+              </div>
+              <span className="font-black text-pink-600">₹{aovMetrics.dessertPromptRev.toFixed(0)}</span>
             </div>
           </div>
         </div>

@@ -510,7 +510,71 @@ const MarketingManager: React.FC = () => {
                     </div>
 
 
-                    {/* 3. AI Contextual Marketing */}
+                    {/* 3. Post-Meal Dessert Prompt */}
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-pink-400">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-slate-800 flex items-center gap-2"><i className="fas fa-ice-cream text-pink-500"></i> Post-Meal Dessert Prompt</h4>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-slate-600">
+                                    {settings.dessertPromptEnabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <button
+                                    onClick={() => updateSettings({ ...settings, dessertPromptEnabled: !settings.dessertPromptEnabled })}
+                                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center shrink-0 ${settings.dessertPromptEnabled ? 'bg-pink-500' : 'bg-slate-300'}`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm absolute top-1 transition-transform duration-300 ${settings.dessertPromptEnabled ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                                </button>
+                            </div>
+                        </div>
+                        {settings.dessertPromptEnabled && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Show Popup After (minutes)</label>
+                                    <input
+                                        type="number"
+                                        min={1} max={60}
+                                        value={settings.dessertPromptMinutes || 15}
+                                        onChange={(e) => updateSettings({ ...settings, dessertPromptMinutes: Number(e.target.value) })}
+                                        className="w-full sm:w-1/3 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-pink-500 outline-none"
+                                    />
+                                    <p className="text-xs text-slate-400 mt-1">Popup appears this many minutes after order is placed.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                                        Dessert / Drink Items <span className="text-pink-500">({(settings.dessertPromptItemIds || []).length}/3 selected)</span>
+                                    </label>
+                                    <p className="text-xs text-slate-400 mb-3">Select up to 3 desserts or drinks to show in the post-meal popup.</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                        {menuItems.filter(m => m.restaurantId === settings.restaurantId).map(item => {
+                                            const isSelected = (settings.dessertPromptItemIds || []).includes(item.id);
+                                            const poolFull = (settings.dessertPromptItemIds || []).length >= 3;
+                                            return (
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => {
+                                                        const current = settings.dessertPromptItemIds || [];
+                                                        const next = isSelected ? current.filter(id => id !== item.id) : poolFull ? current : [...current, item.id];
+                                                        updateSettings({ ...settings, dessertPromptItemIds: next });
+                                                    }}
+                                                    disabled={!isSelected && poolFull}
+                                                    className={`flex items-center gap-2 p-2 rounded-lg border text-left transition-all text-xs ${isSelected ? 'border-pink-400 bg-pink-50 text-pink-800' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'} ${!isSelected && poolFull ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                                >
+                                                    <img src={item.imageUrl} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold truncate">{item.name}</p>
+                                                        <p className="text-slate-400">₹{item.fullPrice}</p>
+                                                    </div>
+                                                    {isSelected && <i className="fas fa-check-circle text-pink-500 flex-shrink-0"></i>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 4. AI Contextual Marketing */}
                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
                         <div className="flex items-center justify-between mb-4">
                             <h4 className="font-bold text-slate-800 flex items-center gap-2"><i className="fas fa-brain text-indigo-500"></i> AI Contextual Marketing</h4>

@@ -63,6 +63,9 @@ export interface Restaurant {
   mysteryBoxEnabled?: boolean;
   mysteryBoxPrice?: number;
   mysteryBoxItemIds?: string[];
+  dessertPromptEnabled?: boolean;
+  dessertPromptMinutes?: number;
+  dessertPromptItemIds?: string[];
 }
 
 export interface Banner {
@@ -156,6 +159,9 @@ export interface RestaurantSettings {
   mysteryBoxEnabled?: boolean;
   mysteryBoxPrice?: number;
   mysteryBoxItemIds?: string[];
+  dessertPromptEnabled?: boolean;
+  dessertPromptMinutes?: number;
+  dessertPromptItemIds?: string[];
 }
 
 export interface MarketingRule {

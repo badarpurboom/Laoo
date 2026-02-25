@@ -258,6 +258,10 @@ const CustomerView: React.FC = () => {
   const [isMysteryBoxOpened, setIsMysteryBoxOpened] = useState(false);
   const [showMysteryBounty, setShowMysteryBounty] = useState(false);
 
+  // Post-Meal Dessert Prompt State
+  const [showDessertPrompt, setShowDessertPrompt] = useState(false);
+  const [dessertPromptTriggeredOrderId, setDessertPromptTriggeredOrderId] = useState<string | null>(null);
+
   // Auto-select valid order type if current one is disabled
   React.useEffect(() => {
     const prefs = settings.orderPreferences;
@@ -473,6 +477,14 @@ const CustomerView: React.FC = () => {
       };
 
       await addOrder(orderToSubmit);
+
+      // Start dessert prompt timer for dine-in orders
+      if (orderType === 'dine-in' && settings.dessertPromptEnabled && (settings.dessertPromptItemIds || []).length > 0) {
+        const delay = (settings.dessertPromptMinutes || 15) * 60 * 1000;
+        setTimeout(() => {
+          setShowDessertPrompt(true);
+        }, delay);
+      }
 
       setCheckoutStep('success');
     } catch (err: any) {
@@ -1064,7 +1076,6 @@ const CustomerView: React.FC = () => {
                                 if (menuItem) {
                                   addToCart(menuItem, item.portionType as any || 'full', true, 'REORDER_NUDGE');
                                   setShowBill(false);
-                                  setIsCartOpen(true);
                                 }
                               }}
                               disabled={!menuItem}
@@ -1160,6 +1171,61 @@ const CustomerView: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* 🍰 POST-MEAL DESSERT PROMPT */}
+      {showDessertPrompt && (settings.dessertPromptItemIds || []).length > 0 && (
+        <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" style={{ animation: 'bounce-fade-in 0.5s ease forwards' }}>
+          <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-2xl">
+            {/* Pink gradient header */}
+            <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-5 text-white text-center relative overflow-hidden">
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+              <div className="relative z-10">
+                <div className="text-4xl mb-2">🍮</div>
+                <h3 className="text-xl font-black">Khana aacha laga?</h3>
+                <p className="text-pink-100 text-sm mt-1">Kuch meetha ho jaye! 😋</p>
+              </div>
+              <button
+                onClick={() => setShowDessertPrompt(false)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+              >
+                <i className="fas fa-times text-sm"></i>
+              </button>
+            </div>
+            {/* Dessert items */}
+            <div className="p-5 space-y-3">
+              {(settings.dessertPromptItemIds || []).map(itemId => {
+                const item = menuItems.find(m => m.id === itemId && m.isAvailable);
+                if (!item) return null;
+                const alreadyInCart = cart.find(c => c.id === item.id);
+                return (
+                  <div key={item.id} className="flex items-center gap-3 bg-pink-50 border border-pink-100 rounded-2xl p-3">
+                    <img src={item.imageUrl} className="w-14 h-14 rounded-xl object-cover shrink-0 shadow-sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800 text-sm truncate">{item.name}</p>
+                      <p className="text-pink-600 font-black text-sm">₹{item.fullPrice}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (!alreadyInCart) addToCart(item, 'full', true, 'DESSERT_PROMPT');
+                        setShowDessertPrompt(false);
+                      }}
+                      className={`shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 ${alreadyInCart ? 'bg-slate-100 text-slate-400' : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200 hover:shadow-lg'}`}
+                    >
+                      {alreadyInCart ? '✓ Added' : '+ Add'}
+                    </button>
+                  </div>
+                );
+              })}
+              <button
+                onClick={() => setShowDessertPrompt(false)}
+                className="w-full py-3 text-slate-400 text-xs font-medium hover:text-slate-600 transition-colors"
+              >
+                No thanks, I'm full 😊
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* GLOBAL / HOME SCREEN MYSTERY BOX REVEAL */}
       {showMysteryBounty && revealedMysteryItem && (
