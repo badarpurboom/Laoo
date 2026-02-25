@@ -405,8 +405,9 @@ const CustomerView: React.FC = () => {
     };
 
     try {
-      // If Gift threshold is met, implicitly add the free item before submitting
-      const finalItems = [...cart];
+      let finalItems = [...cart];
+
+      // 1. If Gift threshold is met, implicitly add the free item before submitting
       if (settings.giftThreshold && settings.giftItemId && cartTotal >= settings.giftThreshold) {
         const giftItem = menuItems.find(m => m.id === settings.giftItemId);
         if (giftItem && !finalItems.find(i => i.id === giftItem.id && i.price === 0)) {
@@ -418,6 +419,37 @@ const CustomerView: React.FC = () => {
             isUpsell: true,
             marketingSource: 'REWARD'
           });
+        }
+      }
+
+      // 2. Resolve Mystery Box to actual item before creating the order
+      const mysteryBoxIndex = finalItems.findIndex(i => i.id === 'mystery_box');
+      let willShowMysteryBounty = false;
+
+      if (mysteryBoxIndex !== -1 && settings.mysteryBoxEnabled) {
+        let potentialItems = tenantMenuItems.filter(m => m.isAvailable && m.fullPrice >= (settings.mysteryBoxPrice || 49));
+        if (potentialItems.length === 0) potentialItems = tenantMenuItems.filter(m => m.isAvailable);
+
+        if (potentialItems.length > 0) {
+          const randomItem = potentialItems[Math.floor(Math.random() * potentialItems.length)];
+          setRevealedMysteryItem({
+            name: randomItem.name,
+            imageUrl: randomItem.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48',
+            price: randomItem.fullPrice
+          });
+          willShowMysteryBounty = true;
+
+          // Replace generic mystery box with the actual item in the order payload
+          const genericMysteryBox = finalItems[mysteryBoxIndex];
+          finalItems[mysteryBoxIndex] = {
+            ...randomItem,
+            quantity: genericMysteryBox.quantity,
+            portionType: 'full',
+            // We charge whatever the mystery box cost was:
+            price: genericMysteryBox.price,
+            isUpsell: true,
+            marketingSource: 'MYSTERY_BOX'
+          };
         }
       }
 
@@ -437,24 +469,6 @@ const CustomerView: React.FC = () => {
       };
 
       await addOrder(orderToSubmit);
-
-      // Determine if a Mystery Box was purchased
-      const hasMysteryBox = finalItems.find(i => i.id === 'mystery_box');
-      if (hasMysteryBox && settings.mysteryBoxEnabled) {
-        // Identify potential reveal items (items priced >= mysteryBoxPrice, or just any item if none match)
-        let potentialItems = tenantMenuItems.filter(m => m.isAvailable && m.fullPrice >= (settings.mysteryBoxPrice || 49));
-        if (potentialItems.length === 0) potentialItems = tenantMenuItems.filter(m => m.isAvailable); // fallback
-
-        if (potentialItems.length > 0) {
-          const randomItem = potentialItems[Math.floor(Math.random() * potentialItems.length)];
-          setRevealedMysteryItem({
-            name: randomItem.name,
-            imageUrl: randomItem.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48',
-            price: randomItem.fullPrice
-          });
-          // Do not show reveal in cart. Just proceed to success first.
-        }
-      }
 
       setCheckoutStep('success');
     } catch (err: any) {
@@ -745,6 +759,27 @@ const CustomerView: React.FC = () => {
                     );
                   })()}
 
+                  {/* Mystery Box Impulse Buy */}
+                  {settings.mysteryBoxEnabled && cart.length > 0 && !cart.find(c => c.id === 'mystery_box') && (
+                    <div className="mb-6 p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-orange-100 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center text-rose-500 text-xl border border-rose-100 shrink-0">
+                          <i className="fas fa-box-open animate-bounce"></i>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-800 leading-tight mb-0.5">Mystery Box</h4>
+                          <p className="text-[10px] text-slate-500 leading-tight">Add a surprise dessert for just ₹{settings.mysteryBoxPrice}!</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleAddMysteryBox}
+                        className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-slate-900 transition-colors whitespace-nowrap active:scale-95 shrink-0"
+                      >
+                        + Add ₹{settings.mysteryBoxPrice}
+                      </button>
+                    </div>
+                  )}
+
                   {cart.length === 0 ? (
                     <div className="text-center py-20">
                       <i className="fas fa-shopping-cart text-slate-200 text-6xl mb-4"></i>
@@ -789,27 +824,6 @@ const CustomerView: React.FC = () => {
                           </div>
                         );
                       })}
-                    </div>
-                  )}
-
-                  {/* Mystery Box Impulse Buy */}
-                  {settings.mysteryBoxEnabled && cart.length > 0 && !cart.find(c => c.id === 'mystery_box') && (
-                    <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-orange-100 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center text-rose-500 text-xl border border-rose-100 shrink-0">
-                          <i className="fas fa-box-open animate-bounce"></i>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-bold text-slate-800 leading-tight mb-0.5">Mystery Box</h4>
-                          <p className="text-[10px] text-slate-500 leading-tight">Add a surprise dessert for just ₹{settings.mysteryBoxPrice}!</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleAddMysteryBox}
-                        className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-slate-900 transition-colors whitespace-nowrap active:scale-95 shrink-0"
-                      >
-                        + Add ₹{settings.mysteryBoxPrice}
-                      </button>
                     </div>
                   )}
                 </>

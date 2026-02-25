@@ -57,34 +57,6 @@ router.post('/', async (req, res) => {
         for (const i of itemsList) {
             let resolvedItemId = i.id || i.menuItemId;
 
-            if (resolvedItemId === 'mystery_box') {
-                let mysteryItem = await prisma.menuItem.findFirst({
-                    where: { restaurantId: req.body.restaurantId, name: 'Mystery Box' }
-                });
-                if (!mysteryItem) {
-                    let category = await prisma.category.findFirst({
-                        where: { restaurantId: req.body.restaurantId }
-                    });
-                    if (!category) {
-                        category = await prisma.category.create({
-                            data: { restaurantId: req.body.restaurantId, name: 'Specials', icon: 'fas fa-star' }
-                        });
-                    }
-                    mysteryItem = await prisma.menuItem.create({
-                        data: {
-                            restaurantId: req.body.restaurantId,
-                            name: 'Mystery Box',
-                            description: 'Surprise Add-on',
-                            fullPrice: i.price || 49,
-                            categoryId: category.id,
-                            isAvailable: true,
-                            isVeg: true
-                        }
-                    });
-                }
-                resolvedItemId = mysteryItem.id;
-            }
-
             orderDetails.push({
                 menuItemId: resolvedItemId,
                 quantity: i.quantity,
