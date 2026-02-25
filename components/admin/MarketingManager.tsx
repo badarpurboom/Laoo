@@ -13,6 +13,15 @@ const MarketingManager: React.FC = () => {
     const [isAddingViaUrl, setIsAddingViaUrl] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [isPickingAI, setIsPickingAI] = useState(false);
+    const [customPopupText, setCustomPopupText] = useState(settings.popupText || '');
+
+    useEffect(() => {
+        setCustomPopupText(settings.popupText || '');
+    }, [settings.popupText]);
+
+    const handleSaveTagline = () => {
+        updateSettings({ ...settings, popupText: customPopupText });
+    };
 
     useEffect(() => {
         fetchBanners();
@@ -241,6 +250,36 @@ const MarketingManager: React.FC = () => {
 
                 {settings.aiUpsellPopupEnabled && (
                     <div className="p-6 bg-slate-50/50">
+                        {/* Custom Tagline */}
+                        <div className="mb-6 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700">Popup Tagline</label>
+                                    <p className="text-xs text-slate-500">This message appears on all AI Flash Popups.</p>
+                                </div>
+                                <button
+                                    onClick={handleSaveTagline}
+                                    disabled={customPopupText === (settings.popupText || '')}
+                                    className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    maxLength={60}
+                                    value={customPopupText}
+                                    onChange={(e) => setCustomPopupText(e.target.value)}
+                                    placeholder="Abhi bhi confused ho? Ek baar mujhe try karo!"
+                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 pr-16"
+                                />
+                                <div className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold ${customPopupText.length >= 60 ? 'text-red-500' : 'text-slate-400'}`}>
+                                    {customPopupText.length}/60
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Mode Selection */}
                         <div className="flex bg-slate-200/60 p-1 rounded-xl w-full max-w-sm mb-6">
                             <button

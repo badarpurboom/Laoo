@@ -864,7 +864,7 @@ const CustomerView: React.FC = () => {
                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm border border-slate-100 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-800 leading-tight mb-0.5 truncate">{item.name}</p>
-                  <p className="text-[11px] text-slate-600 mb-2 leading-snug font-medium">Abhi bhi confused ho? Ek baar mujhe try karo!</p>
+                  <p className="text-[11px] text-slate-600 mb-2 leading-snug font-medium">{settings.popupText || "Abhi bhi confused ho? Ek baar mujhe try karo!"}</p>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-black text-orange-600">₹{item.fullPrice}</span>
                     <button
@@ -898,7 +898,7 @@ const CustomerView: React.FC = () => {
                 <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white leading-tight mb-0.5 truncate">{item.name}</p>
-                  <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">Abhi bhi confused ho? Ek baar mujhe try karo!</p>
+                  <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popupText || "Abhi bhi confused ho? Ek baar mujhe try karo!"}</p>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-black text-amber-400">₹{item.fullPrice}</span>
                     <button

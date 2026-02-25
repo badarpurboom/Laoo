@@ -52,6 +52,7 @@ export interface Restaurant {
   popupMode?: string;
   popupItem1Id?: string | null;
   popupItem2Id?: string | null;
+  popupText?: string | null;
 }
 
 export interface Banner {
@@ -127,6 +128,7 @@ export interface RestaurantSettings {
   popupMode?: string;
   popupItem1Id?: string | null;
   popupItem2Id?: string | null;
+  popupText?: string | null;
   orderPreferences: {
     dineIn: boolean;
     takeaway: boolean;
