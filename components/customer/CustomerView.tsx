@@ -253,6 +253,9 @@ const CustomerView: React.FC = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [tableOrAddress, setTableOrAddress] = useState('');
 
+  // Mystery Box Reveal State
+  const [revealedMysteryItem, setRevealedMysteryItem] = useState<{ name: string, imageUrl: string, price: number } | null>(null);
+
   // Auto-select valid order type if current one is disabled
   React.useEffect(() => {
     const prefs = settings.orderPreferences;
@@ -432,10 +435,42 @@ const CustomerView: React.FC = () => {
       };
 
       await addOrder(orderToSubmit);
+
+      // Determine if a Mystery Box was purchased
+      const hasMysteryBox = finalItems.find(i => i.id === 'mystery_box');
+      if (hasMysteryBox && settings.mysteryBoxEnabled) {
+        // Identify potential reveal items (items priced >= mysteryBoxPrice, or just any item if none match)
+        let potentialItems = tenantMenuItems.filter(m => m.isAvailable && m.fullPrice >= (settings.mysteryBoxPrice || 49));
+        if (potentialItems.length === 0) potentialItems = tenantMenuItems.filter(m => m.isAvailable); // fallback
+
+        if (potentialItems.length > 0) {
+          const randomItem = potentialItems[Math.floor(Math.random() * potentialItems.length)];
+          setRevealedMysteryItem({
+            name: randomItem.name,
+            imageUrl: randomItem.imageUrl || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48',
+            price: randomItem.fullPrice
+          });
+          setCheckoutStep('mystery_reveal' as any); // Use a temporary step for the reveal
+          return;
+        }
+      }
+
       setCheckoutStep('success');
     } catch (err: any) {
       console.error("Order failed:", err);
       alert("Failed to place order. Please try again.");
+    }
+  };
+
+  const finalizeSuccess = () => {
+    setShowCart(false);
+    setCheckoutStep('cart');
+    setCart([]);
+    setRevealedMysteryItem(null);
+    // Save table number if dine-in
+    if (orderType === 'dine-in' && tableOrAddress) {
+      localStorage.setItem('bistro_table_number', tableOrAddress);
+      window.location.reload(); // Simple reload to refresh bill status
     }
   };
 
@@ -831,6 +866,36 @@ const CustomerView: React.FC = () => {
                 </div>
               )}
 
+              {checkoutStep === 'mystery_reveal' as any && revealedMysteryItem && (
+                <div className="flex-1 flex flex-col items-center justify-center py-6 px-4 animate-in fade-in duration-500">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-amber-400 to-rose-500 rounded-full blur-2xl opacity-40 animate-pulse"></div>
+                    <img
+                      src={revealedMysteryItem.imageUrl}
+                      alt="Mystery Item"
+                      className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-2xl relative z-10 animate-bounce-custom"
+                    />
+                    <div className="absolute -bottom-4 right-0 bg-green-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg z-20 transform rotate-12">
+                      Worth ₹{revealedMysteryItem.price}!
+                    </div>
+                  </div>
+
+                  <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500 mb-2 mt-4 text-center">
+                    It's a {revealedMysteryItem.name}! 🎁
+                  </h2>
+                  <p className="text-slate-500 text-center mb-8 px-4 font-medium">
+                    Wohoo! Your Mystery Box turned out to be an awesome surprise. It will be added to your order!
+                  </p>
+
+                  <button
+                    onClick={() => setCheckoutStep('success')}
+                    className="w-full max-w-[250px] py-4 bg-slate-800 text-white rounded-xl font-bold shadow-xl shadow-slate-200 hover:bg-slate-900 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    Continue to Confirmation <i className="fas fa-arrow-right"></i>
+                  </button>
+                </div>
+              )}
+
               {checkoutStep === 'success' && (
                 <div className="text-center py-10">
                   <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -839,16 +904,7 @@ const CustomerView: React.FC = () => {
                   <h3 className="text-2xl font-bold text-slate-800 mb-2">Order Confirmed!</h3>
                   <p className="text-slate-500 mb-6">Your order is being prepared. Enjoy your meal!</p>
                   <button
-                    onClick={() => {
-                      setShowCart(false);
-                      setCheckoutStep('cart');
-                      setCart([]);
-                      // Save table number if dine-in
-                      if (orderType === 'dine-in' && tableOrAddress) {
-                        localStorage.setItem('bistro_table_number', tableOrAddress);
-                        window.location.reload(); // Simple reload to refresh bill status
-                      }
-                    }}
+                    onClick={finalizeSuccess}
                     className="w-full py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900"
                   >
                     Done
@@ -857,7 +913,7 @@ const CustomerView: React.FC = () => {
               )}
             </div>
 
-            {checkoutStep !== 'success' && cart.length > 0 && (
+            {checkoutStep !== 'success' && checkoutStep !== 'mystery_reveal' as any && cart.length > 0 && (
               <div className="p-6 border-t bg-slate-50">
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-slate-600 text-sm">
@@ -1031,6 +1087,13 @@ const CustomerView: React.FC = () => {
         @keyframes bounce-fade-up {
           0% { transform: translateY(100px) scale(0.9); opacity: 0; }
           100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        @keyframes bounce-custom {
+            0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+            50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+        }
+        .animate-bounce-custom {
+            animation: bounce-custom 2s infinite;
         }
       `}</style>
     </div>
