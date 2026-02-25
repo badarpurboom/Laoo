@@ -257,12 +257,12 @@ router.post('/pick-flash-items', async (req, res) => {
                 })
             });
 
-            if (!aiResponse.ok) throw new Error(\`Failed to fetch from OpenAI: \${aiResponse.statusText}\`);
+            if (!aiResponse.ok) throw new Error(`Failed to fetch from OpenAI: ${aiResponse.statusText}`);
             const data = await aiResponse.json();
             textStr = data.choices[0]?.message?.content || "[]";
         } else {
             // Gemini approach
-            const aiResponse = await fetch(\`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${finalApiKey}\`, {
+            const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${finalApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -271,12 +271,12 @@ router.post('/pick-flash-items', async (req, res) => {
                 })
             });
 
-            if (!aiResponse.ok) throw new Error(\`Failed to fetch from Gemini: \${aiResponse.statusText}\`);
+            if (!aiResponse.ok) throw new Error(`Failed to fetch from Gemini: ${aiResponse.statusText}`);
             const data = await aiResponse.json();
             textStr = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
         }
 
-        textStr = textStr.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+        textStr = textStr.replace(/```json/g, '').replace(/```/g, '').trim();
 
         let parsedIds: string[] = [];
         try {
@@ -287,13 +287,13 @@ router.post('/pick-flash-items', async (req, res) => {
         }
 
         if (!Array.isArray(parsedIds) || parsedIds.length < 2) {
-             return res.status(500).json({ error: 'AI did not return exactly 2 items' });
+            return res.status(500).json({ error: 'AI did not return exactly 2 items' });
         }
 
         // Save immediately to Restaurant settings
         const updatedRestaurant = await prisma.restaurant.update({
             where: { id: restaurantId },
-            data: { 
+            data: {
                 popupItem1Id: parsedIds[0],
                 popupItem2Id: parsedIds[1]
             }
