@@ -55,7 +55,9 @@ export const aiServiceApi = {
     getRecommendations: (restaurantId: string, cartItems: any[], apiKey?: string) =>
         axiosInstance.post('/ai-upsell/recommend', { restaurantId, cartItems, apiKey }),
     syncMenu: (restaurantId: string, apiKey?: string) =>
-        axiosInstance.post('/ai-upsell/sync-menu', { restaurantId, apiKey })
+        axiosInstance.post('/ai-upsell/sync-menu', { restaurantId, apiKey }),
+    pickFlashItems: (restaurantId: string, apiKey?: string) =>
+        axiosInstance.post('/ai-upsell/pick-flash-items', { restaurantId, apiKey })
 };
 
 export const bannerService = {

@@ -190,6 +190,37 @@ const CustomerView: React.FC = () => {
   const [activeTable, setActiveTable] = useState<string>('');
   const [showBill, setShowBill] = useState(false);
 
+  // AI Flash Popups
+  const [showPopup1, setShowPopup1] = useState(false);
+  const [showPopup2, setShowPopup2] = useState(false);
+  const popup1TimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const popup2TimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    if (!settings.aiUpsellPopupEnabled || !settings.popupItem1Id) return;
+
+    popup1TimerRef.current = setTimeout(() => {
+      setShowPopup1(true);
+    }, 20000);
+
+    return () => {
+      if (popup1TimerRef.current) clearTimeout(popup1TimerRef.current);
+      if (popup2TimerRef.current) clearTimeout(popup2TimerRef.current);
+    };
+  }, [settings.aiUpsellPopupEnabled, settings.popupItem1Id]);
+
+  const handleSkipPopup1 = () => {
+    setShowPopup1(false);
+    if (!settings.popupItem2Id) return;
+    popup2TimerRef.current = setTimeout(() => {
+      setShowPopup2(true);
+    }, 10000);
+  };
+
+  const handleSkipPopup2 = () => {
+    setShowPopup2(false);
+  };
+
   React.useEffect(() => {
     const savedTable = localStorage.getItem('bistro_table_number');
     if (savedTable) setActiveTable(savedTable);
@@ -810,6 +841,90 @@ const CustomerView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* AI Flash Popups */}
+      {showPopup1 && settings.popupItem1Id && (() => {
+        const item = menuItems.find(m => m.id === settings.popupItem1Id);
+        if (!item || !item.isAvailable || cart.find(i => i.id === item.id)) return null;
+        return (
+          <div className="fixed top-20 right-4 z-50 pointer-events-auto shadow-2xl rounded-2xl" style={{ animation: 'bounce-fade-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}>
+            <div className="bg-white rounded-2xl p-4 border-2 border-indigo-100 max-w-[280px] sm:max-w-sm relative overflow-hidden ring-4 ring-white/50">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+              <button onClick={handleSkipPopup1} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full text-xs transition-colors z-10">
+                <i className="fas fa-times"></i>
+              </button>
+              <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                AI Recommends
+              </h4>
+              <div className="flex gap-4 relative z-10">
+                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm border border-slate-100 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-800 leading-tight mb-0.5 truncate">{item.name}</p>
+                  <p className="text-[11px] text-slate-600 mb-2 leading-snug font-medium">Abhi bhi confused ho? Ek baar mujhe try karo!</p>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-sm font-black text-orange-600">₹{item.fullPrice}</span>
+                    <button
+                      onClick={() => { addToCart(item, 'full', true); setShowPopup1(false); }}
+                      className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-indigo-500/30 hover:bg-indigo-700 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
+                    >
+                      Add <i className="fas fa-shopping-cart text-[10px]"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {showPopup2 && settings.popupItem2Id && (() => {
+        const item = menuItems.find(m => m.id === settings.popupItem2Id);
+        if (!item || !item.isAvailable || cart.find(i => i.id === item.id)) return null;
+        return (
+          <div className="fixed bottom-24 left-4 z-50 pointer-events-auto shadow-2xl rounded-2xl" style={{ animation: 'bounce-fade-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}>
+            <div className="bg-slate-900 rounded-2xl p-4 border border-slate-700 max-w-[280px] sm:max-w-sm relative overflow-hidden ring-4 ring-slate-900/50">
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-tr from-amber-500/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
+              <button onClick={handleSkipPopup2} className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-xs transition-colors z-10">
+                <i className="fas fa-times"></i>
+              </button>
+              <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
+                <i className="fas fa-fire animate-pulse"></i> Chef's Secret
+              </h4>
+              <div className="flex gap-4 relative z-10">
+                <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white leading-tight mb-0.5 truncate">{item.name}</p>
+                  <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">Abhi bhi confused ho? Ek baar mujhe try karo!</p>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-sm font-black text-amber-400">₹{item.fullPrice}</span>
+                    <button
+                      onClick={() => { addToCart(item, 'full', true); setShowPopup2(false); }}
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
+                    >
+                      Add <i className="fas fa-shopping-cart text-[10px]"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      <style>{`
+        @keyframes bounce-fade-in {
+          0% { transform: translateX(100px) scale(0.9); opacity: 0; }
+          100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        @keyframes bounce-fade-up {
+          0% { transform: translateY(100px) scale(0.9); opacity: 0; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 };

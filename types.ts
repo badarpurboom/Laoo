@@ -48,6 +48,10 @@ export interface Restaurant {
 
   createdAt: string;
   aiUpsellEnabled?: boolean;
+  aiUpsellPopupEnabled?: boolean;
+  popupMode?: string;
+  popupItem1Id?: string | null;
+  popupItem2Id?: string | null;
 }
 
 export interface Banner {
@@ -119,6 +123,10 @@ export interface RestaurantSettings {
   whatsappNumber?: string;
   isOpen: boolean;
   aiUpsellEnabled?: boolean;
+  aiUpsellPopupEnabled?: boolean;
+  popupMode?: string;
+  popupItem1Id?: string | null;
+  popupItem2Id?: string | null;
   orderPreferences: {
     dineIn: boolean;
     takeaway: boolean;

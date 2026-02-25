@@ -40,6 +40,12 @@ model Restaurant {
   // AI Config
   aiUpsellEnabled Boolean @default(true)
   
+  // AI Flash Popups Config
+  aiUpsellPopupEnabled Boolean @default(false)
+  popupMode          String  @default("MANUAL") // "MANUAL" or "AI"
+  popupItem1Id       String?
+  popupItem2Id       String?
+  
   createdAt   DateTime   @default(now())
   categories  Category[]
   menuItems   MenuItem[]

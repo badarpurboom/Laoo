@@ -200,4 +200,111 @@ router.post('/sync-menu', async (req, res) => {
     }
 });
 
+router.post('/pick-flash-items', async (req, res) => {
+    try {
+        const { restaurantId, apiKey } = req.body;
+
+        if (!restaurantId) {
+            return res.status(400).json({ error: 'Missing restaurantId' });
+        }
+
+        const restaurant = await prisma.restaurant.findUnique({
+            where: { id: restaurantId },
+            include: {
+                menuItems: { where: { isAvailable: true } }
+            }
+        });
+
+        if (!restaurant || !restaurant.menuItems.length) {
+            return res.status(404).json({ error: 'Restaurant or menu items not found' });
+        }
+
+        const finalApiKey = apiKey || process.env.GEMINI_API_KEY;
+        if (!finalApiKey) {
+            return res.status(500).json({ error: 'Server AI Key not configured' });
+        }
+
+        const menuItemsShort = restaurant.menuItems.map(m => ({ id: m.id, name: m.name, price: m.fullPrice, isVeg: m.isVeg }));
+
+        const prompt = `
+        You are an expert restaurant up-seller. 
+        Available Restaurant Menu:
+        ${JSON.stringify(menuItemsShort)}
+
+        Task: Select EXACTLY 2 menu items from the available menu that are visually appealing or highly recommended for up-selling.
+        Return ONLY a raw JSON array of the 2 selected IDs.
+        Example: ["item_id_1", "item_id_2"]
+        Absolutely no markdown formatting, no text, just the raw JSON array.
+        `;
+
+        let textStr = "[]";
+
+        if (finalApiKey.startsWith("sk-")) {
+            // OpenAI approach
+            const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${finalApiKey}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-4o-mini",
+                    messages: [
+                        { role: "system", content: "You return pure JSON arrays of 2 IDs." },
+                        { role: "user", content: prompt }
+                    ],
+                    temperature: 0.5
+                })
+            });
+
+            if (!aiResponse.ok) throw new Error(\`Failed to fetch from OpenAI: \${aiResponse.statusText}\`);
+            const data = await aiResponse.json();
+            textStr = data.choices[0]?.message?.content || "[]";
+        } else {
+            // Gemini approach
+            const aiResponse = await fetch(\`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${finalApiKey}\`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.5, response_mime_type: "application/json" }
+                })
+            });
+
+            if (!aiResponse.ok) throw new Error(\`Failed to fetch from Gemini: \${aiResponse.statusText}\`);
+            const data = await aiResponse.json();
+            textStr = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+        }
+
+        textStr = textStr.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+
+        let parsedIds: string[] = [];
+        try {
+            parsedIds = JSON.parse(textStr);
+        } catch (e) {
+            console.error("Failed to parse AI response:", textStr);
+            return res.status(500).json({ error: 'Failed to process AI response' });
+        }
+
+        if (!Array.isArray(parsedIds) || parsedIds.length < 2) {
+             return res.status(500).json({ error: 'AI did not return exactly 2 items' });
+        }
+
+        // Save immediately to Restaurant settings
+        const updatedRestaurant = await prisma.restaurant.update({
+            where: { id: restaurantId },
+            data: { 
+                popupItem1Id: parsedIds[0],
+                popupItem2Id: parsedIds[1]
+            }
+        });
+
+        res.json({ success: true, popupItem1Id: parsedIds[0], popupItem2Id: parsedIds[1] });
+
+    } catch (error: any) {
+        console.error("AI Flash Item Pick Error:", error);
+        res.status(500).json({ error: error.message || 'Internal server error' });
+    }
+});
+
 export default router;

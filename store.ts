@@ -101,6 +101,10 @@ export const useStore = create<AppState>()(
         currency: 'INR',
         isOpen: true,
         aiUpsellEnabled: true,
+        aiUpsellPopupEnabled: false,
+        popupMode: 'MANUAL',
+        popupItem1Id: null,
+        popupItem2Id: null,
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -205,6 +209,10 @@ export const useStore = create<AppState>()(
                   currency: 'INR',
                   isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
                   aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : false,
+                  aiUpsellPopupEnabled: restaurant.aiUpsellPopupEnabled !== undefined ? restaurant.aiUpsellPopupEnabled : false,
+                  popupMode: restaurant.popupMode || 'MANUAL',
+                  popupItem1Id: restaurant.popupItem1Id || null,
+                  popupItem2Id: restaurant.popupItem2Id || null,
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -244,6 +252,10 @@ export const useStore = create<AppState>()(
               currency: 'INR',
               isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
               aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : false,
+              aiUpsellPopupEnabled: restaurant.aiUpsellPopupEnabled !== undefined ? restaurant.aiUpsellPopupEnabled : false,
+              popupMode: restaurant.popupMode || 'MANUAL',
+              popupItem1Id: restaurant.popupItem1Id || null,
+              popupItem2Id: restaurant.popupItem2Id || null,
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
