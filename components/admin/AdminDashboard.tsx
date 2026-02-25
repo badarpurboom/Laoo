@@ -73,7 +73,7 @@ const AdminDashboard: React.FC = () => {
     let popupRev = 0;
     let mysteryBoxRev = 0;
     let aiCrossSellRev = 0;
-    let rewardCost = 0; // Value of given freebies
+    let rewardCount = 0; // Number of times reward was given
 
     tenantOrders.forEach(order => {
       if (order.status === 'cancelled') return;
@@ -82,15 +82,14 @@ const AdminDashboard: React.FC = () => {
         if (item.marketingSource === 'MYSTERY_BOX') mysteryBoxRev += (item.price * item.quantity);
         if (item.marketingSource === 'AI_CROSS_SELL') aiCrossSellRev += (item.price * item.quantity);
         if (item.marketingSource === 'REWARD') {
-          // Track the nominal cost of the reward (fullPrice) even though price was 0
-          rewardCost += (item.fullPrice * item.quantity);
+          rewardCount += item.quantity; // Count how many free reward items were given
         }
         // Fallback for older upsell items before tagging
         if (item.isUpsell && !item.marketingSource) aiCrossSellRev += (item.price * item.quantity);
       });
     });
 
-    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCost, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev };
+    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCount, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev };
   }, [tenantOrders]);
 
   const topAIItemsData = useMemo(() => {
@@ -213,10 +212,10 @@ const AdminDashboard: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-800 text-sm">Spend Rewards</h4>
-                  <p className="text-[10px] text-slate-500">Nominal value of freebies given</p>
+                  <p className="text-[10px] text-slate-500">Times reward was claimed today</p>
                 </div>
               </div>
-              <span className="font-black text-emerald-600">₹{aovMetrics.rewardCost.toFixed(0)}</span>
+              <span className="font-black text-emerald-600">{aovMetrics.rewardCount} <span className="text-xs font-semibold text-emerald-500">times</span></span>
             </div>
           </div>
         </div>

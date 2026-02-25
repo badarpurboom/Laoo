@@ -27,6 +27,7 @@ router.get('/:restaurantId', async (req, res) => {
                 id: d.menuItemId,
                 name: d.menuItem.name,
                 price: d.price,
+                fullPrice: d.menuItem.fullPrice,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
                 isUpsell: d.isUpsell || false,
