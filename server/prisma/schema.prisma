@@ -48,12 +48,21 @@ model Restaurant {
   popup1Text         String?
   popup2Text         String?
   
+  // Advanced AOV Tracking & Marketing Config
+  giftThreshold      Float?
+  giftItemId         String?
+  aiMarketingEnabled Boolean @default(true)
+  maxAiDiscountPct   Float   @default(15.0)
+  mysteryBoxEnabled  Boolean @default(false)
+  mysteryBoxPrice    Float   @default(49.0)
+  
   createdAt   DateTime   @default(now())
   categories  Category[]
   menuItems   MenuItem[]
   orders      Order[]
   notifications Notification[]
   banners     Banner[]
+  marketingRules MarketingRule[]
 }
 
 model Banner {
@@ -91,6 +100,8 @@ model MenuItem {
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   OrderDetails OrderDetail[]
+  marketingRulesAsTrigger MarketingRule[] @relation("TriggerItem")
+  marketingRulesAsTarget  MarketingRule[] @relation("TargetItem")
 }
 
 model Order {
@@ -117,6 +128,8 @@ model OrderDetail {
   price      Float
   portion    String?  @default("full")
   isUpsell   Boolean  @default(false)
+  marketingSource String? // POPUP, MYSTERY_BOX, CROSS_SELL, COMBO
+  marketingRuleId String? // ID of the MarketingRule that triggered this
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
 }
@@ -129,4 +142,20 @@ model Notification {
   status       String     @default("pending")     // pending, resolved
   createdAt    DateTime   @default(now())
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model MarketingRule {
+  id             String     @id @default(cuid())
+  restaurantId   String
+  type           String     // CROSS_SELL, UP_SELL, IMPULSE, COMBO, MYSTERY_BOX, POPUP
+  triggerItemId  String?    // item that triggers this rule
+  targetItemId   String?    // item to recommend (null if AI decides dynamically)
+  discountPct    Float      @default(0.0)
+  isActive       Boolean    @default(true)
+  isAiManaged    Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  triggerItem    MenuItem?  @relation("TriggerItem", fields: [triggerItemId], references: [id])
+  targetItem     MenuItem?  @relation("TargetItem", fields: [targetItemId], references: [id])
 }

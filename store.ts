@@ -107,6 +107,12 @@ export const useStore = create<AppState>()(
         popupItem2Id: null,
         popup1Text: null,
         popup2Text: null,
+        giftThreshold: null,
+        giftItemId: null,
+        aiMarketingEnabled: true,
+        maxAiDiscountPct: 15,
+        mysteryBoxEnabled: false,
+        mysteryBoxPrice: 49,
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -217,6 +223,12 @@ export const useStore = create<AppState>()(
                   popupItem2Id: restaurant.popupItem2Id || null,
                   popup1Text: restaurant.popup1Text || null,
                   popup2Text: restaurant.popup2Text || null,
+                  giftThreshold: restaurant.giftThreshold !== undefined ? restaurant.giftThreshold : null,
+                  giftItemId: restaurant.giftItemId || null,
+                  aiMarketingEnabled: restaurant.aiMarketingEnabled !== undefined ? restaurant.aiMarketingEnabled : true,
+                  maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
+                  mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
+                  mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -262,6 +274,12 @@ export const useStore = create<AppState>()(
               popupItem2Id: restaurant.popupItem2Id || null,
               popup1Text: restaurant.popup1Text || null,
               popup2Text: restaurant.popup2Text || null,
+              giftThreshold: restaurant.giftThreshold !== undefined ? restaurant.giftThreshold : null,
+              giftItemId: restaurant.giftItemId || null,
+              aiMarketingEnabled: restaurant.aiMarketingEnabled !== undefined ? restaurant.aiMarketingEnabled : true,
+              maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
+              mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
+              mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -354,7 +372,13 @@ export const useStore = create<AppState>()(
             popupItem1Id: settings.popupItem1Id,
             popupItem2Id: settings.popupItem2Id,
             popup1Text: settings.popup1Text,
-            popup2Text: settings.popup2Text
+            popup2Text: settings.popup2Text,
+            giftThreshold: settings.giftThreshold,
+            giftItemId: settings.giftItemId,
+            aiMarketingEnabled: settings.aiMarketingEnabled,
+            maxAiDiscountPct: settings.maxAiDiscountPct,
+            mysteryBoxEnabled: settings.mysteryBoxEnabled,
+            mysteryBoxPrice: settings.mysteryBoxPrice
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData);

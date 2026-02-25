@@ -398,6 +398,110 @@ const MarketingManager: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Advanced AOV Engine Section */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-6">
+                <div className="p-6 border-b border-slate-100">
+                    <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <span className="text-emerald-500"><i className="fas fa-chart-line"></i></span> Advanced AOV Engine
+                    </h3>
+                    <p className="text-slate-500 text-sm mt-1">Configure Rewards, Mystery Boxes, and AI Contextual Upselling rules.</p>
+                </div>
+
+                <div className="p-6 space-y-8 bg-slate-50/50">
+                    {/* 1. Reward Threshold */}
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><i className="fas fa-gift text-pink-500"></i> Spend Rewards</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Required Spend Form (₹)</label>
+                                <input
+                                    type="number"
+                                    value={settings.giftThreshold || ''}
+                                    onChange={(e) => updateSettings({ ...settings, giftThreshold: e.target.value ? Number(e.target.value) : null })}
+                                    placeholder="e.g. 1000"
+                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Free Reward Item</label>
+                                <select
+                                    value={settings.giftItemId || ''}
+                                    onChange={(e) => updateSettings({ ...settings, giftItemId: e.target.value || null })}
+                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+                                >
+                                    <option value="">None (Disable Reward)</option>
+                                    {menuItems.map(m => (
+                                        <option key={`gift-${m.id}`} value={m.id}>{m.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 2. Mystery Box */}
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-slate-800 flex items-center gap-2"><i className="fas fa-box-open text-orange-500"></i> Mystery Box (Checkout Add-on)</h4>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-slate-600">
+                                    {settings.mysteryBoxEnabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <button
+                                    onClick={() => updateSettings({ ...settings, mysteryBoxEnabled: !settings.mysteryBoxEnabled })}
+                                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center shrink-0 ${settings.mysteryBoxEnabled ? 'bg-orange-500' : 'bg-slate-300'}`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm absolute top-1 transition-transform duration-300 ${settings.mysteryBoxEnabled ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                                </button>
+                            </div>
+                        </div>
+                        {settings.mysteryBoxEnabled && (
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Mystery Box Price (₹)</label>
+                                <input
+                                    type="number"
+                                    value={settings.mysteryBoxPrice || 0}
+                                    onChange={(e) => updateSettings({ ...settings, mysteryBoxPrice: Number(e.target.value) })}
+                                    className="w-full sm:w-1/2 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                                />
+                                <p className="text-xs text-slate-400 mt-2">Display a tempting "Surprise Item" at checkout.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 3. AI Contextual Marketing */}
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-slate-800 flex items-center gap-2"><i className="fas fa-brain text-indigo-500"></i> AI Contextual Marketing</h4>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-medium text-slate-600">
+                                    {settings.aiMarketingEnabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <button
+                                    onClick={() => updateSettings({ ...settings, aiMarketingEnabled: !settings.aiMarketingEnabled })}
+                                    className={`w-12 h-6 rounded-full transition-colors relative flex items-center shrink-0 ${settings.aiMarketingEnabled ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm absolute top-1 transition-transform duration-300 ${settings.aiMarketingEnabled ? 'translate-x-7' : 'translate-x-1'}`}></div>
+                                </button>
+                            </div>
+                        </div>
+                        {settings.aiMarketingEnabled && (
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Max AI Discount Allowed (%)</label>
+                                <input
+                                    type="number"
+                                    max="100"
+                                    min="0"
+                                    value={settings.maxAiDiscountPct || 0}
+                                    onChange={(e) => updateSettings({ ...settings, maxAiDiscountPct: Number(e.target.value) })}
+                                    className="w-full sm:w-1/2 px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                />
+                                <p className="text-xs text-slate-400 mt-2">Maximum percent discount the AI is allowed to offer to close a contextual cross-sell.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

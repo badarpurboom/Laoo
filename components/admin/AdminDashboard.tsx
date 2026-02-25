@@ -69,14 +69,28 @@ const AdminDashboard: React.FC = () => {
   }, [tenantOrders, categories, menuItems, activeRestaurantId]);
 
   // Calculate AI Upsell Analytics
-  const aiUpsellRevenue = useMemo(() => {
-    return tenantOrders.reduce((sum, order) => {
-      if (order.status === 'cancelled') return sum;
-      const orderAIRev = order.items.reduce((itemSum, item) => {
-        return item.isUpsell ? itemSum + (item.price * item.quantity) : itemSum;
-      }, 0);
-      return sum + orderAIRev;
-    }, 0);
+  const aovMetrics = useMemo(() => {
+    let popupRev = 0;
+    let mysteryBoxRev = 0;
+    let aiCrossSellRev = 0;
+    let rewardCost = 0; // Value of given freebies
+
+    tenantOrders.forEach(order => {
+      if (order.status === 'cancelled') return;
+      order.items.forEach(item => {
+        if (item.marketingSource === 'POPUP') popupRev += (item.price * item.quantity);
+        if (item.marketingSource === 'MYSTERY_BOX') mysteryBoxRev += (item.price * item.quantity);
+        if (item.marketingSource === 'AI_CROSS_SELL') aiCrossSellRev += (item.price * item.quantity);
+        if (item.marketingSource === 'REWARD') {
+          // Track the nominal cost of the reward (fullPrice) even though price was 0
+          rewardCost += (item.fullPrice * item.quantity);
+        }
+        // Fallback for older upsell items before tagging
+        if (item.isUpsell && !item.marketingSource) aiCrossSellRev += (item.price * item.quantity);
+      });
+    });
+
+    return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCost, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev };
   }, [tenantOrders]);
 
   const topAIItemsData = useMemo(() => {
@@ -98,7 +112,7 @@ const AdminDashboard: React.FC = () => {
 
   const stats = [
     { label: "Total Revenue", value: `₹${totalRevenue.toFixed(0)}`, icon: 'fas fa-dollar-sign', color: 'bg-emerald-100 text-emerald-600' },
-    { label: "AI Extra Revenue", value: `₹${aiUpsellRevenue.toFixed(0)}`, icon: 'fas fa-magic', color: 'bg-indigo-100 text-indigo-600' },
+    { label: "AOV Opt. Revenue", value: `₹${aovMetrics.totalAovRev.toFixed(0)}`, icon: 'fas fa-chart-line', color: 'bg-indigo-100 text-indigo-600' },
     { label: "Total Orders", value: tenantOrders.length, icon: 'fas fa-shopping-bag', color: 'bg-blue-100 text-blue-600' },
     { label: "Pending", value: pendingOrders, icon: 'fas fa-clock', color: 'bg-orange-100 text-orange-600' },
     { label: "Delivered", value: deliveryOrders, icon: 'fas fa-check-circle', color: 'bg-purple-100 text-purple-600' },
@@ -144,6 +158,66 @@ const AdminDashboard: React.FC = () => {
                 <Area type="monotone" dataKey="revenue" stroke="#4f46e5" fillOpacity={1} fill="url(#colorRevenue)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* AOV Performance Breakdown */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <i className="fas fa-bullseye text-indigo-500"></i> AOV Feature Performance
+          </h3>
+          <div className="space-y-4 pt-2">
+            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                  <i className="fas fa-sparkles"></i>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">AI Cross-Sells</h4>
+                  <p className="text-[10px] text-slate-500">Contextual pairings</p>
+                </div>
+              </div>
+              <span className="font-black text-indigo-600">₹{aovMetrics.aiCrossSellRev.toFixed(0)}</span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-rose-50 rounded-xl border border-rose-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                  <i className="fas fa-bolt"></i>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">Flash Popups</h4>
+                  <p className="text-[10px] text-slate-500">Top items & chef secrets</p>
+                </div>
+              </div>
+              <span className="font-black text-rose-600">₹{aovMetrics.popupRev.toFixed(0)}</span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                  <i className="fas fa-box-open"></i>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">Mystery Box</h4>
+                  <p className="text-[10px] text-slate-500">Checkout impulse buys</p>
+                </div>
+              </div>
+              <span className="font-black text-orange-600">₹{aovMetrics.mysteryBoxRev.toFixed(0)}</span>
+            </div>
+
+            <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <i className="fas fa-gift"></i>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 text-sm">Spend Rewards</h4>
+                  <p className="text-[10px] text-slate-500">Nominal value of freebies given</p>
+                </div>
+              </div>
+              <span className="font-black text-emerald-600">₹{aovMetrics.rewardCost.toFixed(0)}</span>
+            </div>
           </div>
         </div>
 

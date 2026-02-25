@@ -307,6 +307,31 @@ const CustomerView: React.FC = () => {
 
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+  // Auto-add/remove Mystery Box and Gift item logic can be complex, let's keep it simple:
+  // We'll manage mystery box as a special cart item, or just add it to cart when clicked.
+  const handleAddMysteryBox = () => {
+    if (!settings.mysteryBoxEnabled) return;
+    setCart(prev => {
+      const existing = prev.find(i => i.id === 'mystery_box');
+      if (existing) return prev;
+      return [...prev, {
+        id: 'mystery_box',
+        restaurantId: activeRestaurantId || '',
+        name: '🎁 Mystery Box (Surprise Add-on)',
+        description: 'A special surprise item at a throwaway price!',
+        categoryId: 'special',
+        fullPrice: settings.mysteryBoxPrice || 49,
+        quantity: 1,
+        portionType: 'full',
+        price: settings.mysteryBoxPrice || 49,
+        isAvailable: true,
+        isVeg: true,
+        imageUrl: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=200&h=200&fit=crop',
+        marketingSource: 'MYSTERY_BOX' // Tracking
+      }];
+    });
+  };
+
   // Tax Logic
   const taxAmount = (settings.taxEnabled) ? (cartTotal * settings.taxPercentage) / 100 : 0;
 
@@ -321,7 +346,7 @@ const CustomerView: React.FC = () => {
   }
   const finalTotal = cartTotal + taxAmount + deliveryFee;
 
-  const addToCart = (item: MenuItem, portion: 'half' | 'full' = 'full', isUpsell: boolean = false) => {
+  const addToCart = (item: MenuItem, portion: 'half' | 'full' = 'full', isUpsell: boolean = false, marketingSource?: string) => {
     setCart(prev => {
       const cartItemId = `${item.id}-${portion}`;
       const existing = prev.find(i => `${i.id}-${i.portionType}` === cartItemId);
@@ -330,7 +355,7 @@ const CustomerView: React.FC = () => {
       if (existing) {
         return prev.map(i => `${i.id}-${i.portionType}` === cartItemId ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { ...item, quantity: 1, price, portionType: portion, isUpsell }];
+      return [...prev, { ...item, quantity: 1, price, portionType: portion, isUpsell, marketingSource }];
     });
   };
 
@@ -375,7 +400,38 @@ const CustomerView: React.FC = () => {
     };
 
     try {
-      await addOrder(newOrder);
+      // If Gift threshold is met, implicitly add the free item before submitting
+      const finalItems = [...cart];
+      if (settings.giftThreshold && settings.giftItemId && cartTotal >= settings.giftThreshold) {
+        const giftItem = menuItems.find(m => m.id === settings.giftItemId);
+        if (giftItem && !finalItems.find(i => i.id === giftItem.id && i.price === 0)) {
+          finalItems.push({
+            ...giftItem,
+            quantity: 1,
+            portionType: 'full',
+            price: 0,
+            isUpsell: true,
+            marketingSource: 'REWARD'
+          });
+        }
+      }
+
+      const orderToSubmit: Order = {
+        id: newOrder.id,
+        restaurantId: newOrder.restaurantId,
+        customerName: newOrder.customerName,
+        customerPhone: newOrder.customerPhone,
+        items: finalItems,
+        totalAmount: newOrder.totalAmount,
+        status: newOrder.status,
+        orderType: newOrder.orderType,
+        timestamp: newOrder.timestamp,
+        tableNumber: newOrder.tableNumber,
+        address: newOrder.address,
+        paymentStatus: newOrder.paymentStatus
+      };
+
+      await addOrder(orderToSubmit);
       setCheckoutStep('success');
     } catch (err: any) {
       console.error("Order failed:", err);
@@ -587,7 +643,7 @@ const CustomerView: React.FC = () => {
                                   <div className="flex justify-between items-center mt-2">
                                     <span className="text-[11px] font-black text-indigo-600">₹{item.fullPrice}</span>
                                     <button
-                                      onClick={() => addToCart(item, 'full', true)}
+                                      onClick={() => addToCart(item, 'full', true, 'AI_CROSS_SELL')}
                                       className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm active:scale-95"
                                     >
                                       <i className="fas fa-plus text-[9px]"></i>
@@ -602,6 +658,41 @@ const CustomerView: React.FC = () => {
                     </div>
                   )}
                   {/* End AI Upsell */}
+
+                  {/* Reward Progress Bar */}
+                  {settings.giftThreshold && settings.giftThreshold > 0 && settings.giftItemId && cart.length > 0 && (() => {
+                    const giftItem = menuItems.find(m => m.id === settings.giftItemId);
+                    if (!giftItem) return null;
+                    const amountToReward = settings.giftThreshold - cartTotal;
+                    const progress = Math.min(100, (cartTotal / settings.giftThreshold) * 100);
+                    const isUnlocked = amountToReward <= 0;
+
+                    return (
+                      <div className="mb-6 bg-emerald-50 border border-emerald-100 p-4 rounded-xl relative overflow-hidden">
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                            <i className="fas fa-gift text-emerald-500"></i>
+                            {isUnlocked ? "Reward Unlocked!" : `Spend ₹${amountToReward.toFixed(0)} more for a FREE ${giftItem.name}!`}
+                          </h4>
+                        </div>
+                        <div className="w-full bg-emerald-200/50 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500 ease-out relative"
+                            style={{ width: `${progress}%` }}
+                          >
+                            {progress > 10 && (
+                              <div className="absolute top-0 right-0 bottom-0 left-0 bg-white/20 animate-pulse"></div>
+                            )}
+                          </div>
+                        </div>
+                        {isUnlocked && (
+                          <p className="text-[10px] text-emerald-600 mt-2 font-semibold">
+                            ✅ {giftItem.name} will be added to your order for free!
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {cart.length === 0 ? (
                     <div className="text-center py-20">
@@ -647,6 +738,27 @@ const CustomerView: React.FC = () => {
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+
+                  {/* Mystery Box Impulse Buy */}
+                  {settings.mysteryBoxEnabled && cart.length > 0 && !cart.find(c => c.id === 'mystery_box') && (
+                    <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-orange-100 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white rounded-lg shadow-sm flex items-center justify-center text-rose-500 text-xl border border-rose-100 shrink-0">
+                          <i className="fas fa-box-open animate-bounce"></i>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-800 leading-tight mb-0.5">Mystery Box</h4>
+                          <p className="text-[10px] text-slate-500 leading-tight">Add a surprise dessert for just ₹{settings.mysteryBoxPrice}!</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleAddMysteryBox}
+                        className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-slate-900 transition-colors whitespace-nowrap active:scale-95 shrink-0"
+                      >
+                        + Add ₹{settings.mysteryBoxPrice}
+                      </button>
                     </div>
                   )}
                 </>
@@ -864,7 +976,7 @@ const CustomerView: React.FC = () => {
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-black text-rose-400">₹{item.fullPrice}</span>
                     <button
-                      onClick={() => { addToCart(item, 'full', true); setShowPopup1(false); }}
+                      onClick={() => { addToCart(item, 'full', true, 'POPUP'); setShowPopup1(false); }}
                       className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-rose-500/20 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
                     >
                       Add <i className="fas fa-shopping-cart text-[10px]"></i>
@@ -898,7 +1010,7 @@ const CustomerView: React.FC = () => {
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-black text-amber-400">₹{item.fullPrice}</span>
                     <button
-                      onClick={() => { addToCart(item, 'full', true); setShowPopup2(false); }}
+                      onClick={() => { addToCart(item, 'full', true, 'POPUP'); setShowPopup2(false); }}
                       className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
                     >
                       Add <i className="fas fa-shopping-cart text-[10px]"></i>

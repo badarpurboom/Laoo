@@ -54,6 +54,14 @@ export interface Restaurant {
   popupItem2Id?: string | null;
   popup1Text?: string | null;
   popup2Text?: string | null;
+
+  // Advanced AOV Tracking & Marketing Config
+  giftThreshold?: number | null;
+  giftItemId?: string | null;
+  aiMarketingEnabled?: boolean;
+  maxAiDiscountPct?: number;
+  mysteryBoxEnabled?: boolean;
+  mysteryBoxPrice?: number;
 }
 
 export interface Banner {
@@ -92,6 +100,8 @@ export interface CartItem extends MenuItem {
   portionType: 'half' | 'full';
   price: number; // The actual price for the selected portion
   isUpsell?: boolean;
+  marketingSource?: string | null;
+  marketingRuleId?: string | null;
 }
 
 export interface Order {
@@ -138,6 +148,24 @@ export interface RestaurantSettings {
     requireTableNumber: boolean;
     requireCustomerPhone?: boolean;
   };
+  giftThreshold?: number | null;
+  giftItemId?: string | null;
+  aiMarketingEnabled?: boolean;
+  maxAiDiscountPct?: number;
+  mysteryBoxEnabled?: boolean;
+  mysteryBoxPrice?: number;
+}
+
+export interface MarketingRule {
+  id: string;
+  restaurantId: string;
+  type: 'CROSS_SELL' | 'UP_SELL' | 'IMPULSE' | 'COMBO' | 'MYSTERY_BOX' | 'POPUP';
+  triggerItemId?: string | null;
+  targetItemId?: string | null;
+  discountPct: number;
+  isActive: boolean;
+  isAiManaged: boolean;
+  createdAt: string;
 }
 
 export interface AIConfig {
