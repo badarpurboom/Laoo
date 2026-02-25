@@ -700,27 +700,56 @@ const CustomerView: React.FC = () => {
                           <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl"></div>
                           <h3 className="text-xs font-black text-indigo-800 mb-3 flex items-center gap-1.5 uppercase tracking-wider relative z-10">
                             <i className="fas fa-magic text-indigo-500"></i> Perfect Add-ons For You
+                            {settings.aiMarketingEnabled && (settings.maxAiDiscountPct || 0) > 0 && (
+                              <span className="ml-auto text-[9px] font-bold bg-rose-500 text-white px-2 py-0.5 rounded-full normal-case tracking-normal">
+                                🔥 Up to {settings.maxAiDiscountPct}% OFF
+                              </span>
+                            )}
                           </h3>
                           <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 relative z-10">
-                            {recommendedItems.filter(item => !cart.find(c => c.id === item.id)).map(item => (
-                              <div key={item.id} className="min-w-[130px] w-[130px] bg-white rounded-xl p-2 shadow-sm border border-indigo-50/50 flex flex-col gap-2 group">
-                                <div className="overflow-hidden rounded-lg">
-                                  <img src={item.imageUrl} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
-                                </div>
-                                <div className="flex-1 flex flex-col justify-between">
-                                  <h4 className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2" title={item.name}>{item.name}</h4>
-                                  <div className="flex justify-between items-center mt-2">
-                                    <span className="text-[11px] font-black text-indigo-600">₹{item.fullPrice}</span>
-                                    <button
-                                      onClick={() => addToCart(item, 'full', true, 'AI_CROSS_SELL')}
-                                      className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm active:scale-95"
-                                    >
-                                      <i className="fas fa-plus text-[9px]"></i>
-                                    </button>
+                            {recommendedItems.filter(item => !cart.find(c => c.id === item.id)).map(item => {
+                              // Calculate a smart discount for this item if AI marketing is enabled
+                              const maxDisc = (settings.aiMarketingEnabled && (settings.maxAiDiscountPct || 0) > 0) ? settings.maxAiDiscountPct! : 0;
+                              // Use item.id chars to get a stable "random" discount per item (not random every render)
+                              const discPct = maxDisc > 0
+                                ? Math.max(5, Math.min(maxDisc, (item.id.charCodeAt(0) % (maxDisc - 4)) + 5))
+                                : 0;
+                              const discountedPrice = discPct > 0 ? Math.round(item.fullPrice * (1 - discPct / 100)) : item.fullPrice;
+
+                              return (
+                                <div key={item.id} className="min-w-[130px] w-[130px] bg-white rounded-xl p-2 shadow-sm border border-indigo-50/50 flex flex-col gap-2 group relative overflow-hidden">
+                                  {discPct > 0 && (
+                                    <div className="absolute top-1 left-1 z-10 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                                      -{discPct}%
+                                    </div>
+                                  )}
+                                  <div className="overflow-hidden rounded-lg">
+                                    <img src={item.imageUrl} className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                  </div>
+                                  <div className="flex-1 flex flex-col justify-between">
+                                    <h4 className="text-[11px] font-bold text-slate-800 leading-tight line-clamp-2" title={item.name}>{item.name}</h4>
+                                    <div className="flex justify-between items-center mt-2">
+                                      <div className="flex flex-col">
+                                        {discPct > 0 && (
+                                          <span className="text-[9px] text-slate-400 line-through leading-none">₹{item.fullPrice}</span>
+                                        )}
+                                        <span className="text-[11px] font-black text-indigo-600">₹{discountedPrice}</span>
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          // Add at the discounted price
+                                          const discItem = { ...item, fullPrice: discountedPrice };
+                                          addToCart(discItem, 'full', true, 'AI_CROSS_SELL');
+                                        }}
+                                        className="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-sm active:scale-95"
+                                      >
+                                        <i className="fas fa-plus text-[9px]"></i>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       ) : null}
