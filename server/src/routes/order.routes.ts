@@ -29,7 +29,8 @@ router.get('/:restaurantId', async (req, res) => {
                 price: d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
-                isUpsell: d.isUpsell || false
+                isUpsell: d.isUpsell || false,
+                marketingSource: d.marketingSource || null
             }))
         }));
 
@@ -50,13 +51,49 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: "Missing restaurantId" });
         }
 
-        const orderDetails = (items || details || []).map((i: any) => ({
-            menuItemId: i.id || i.menuItemId,
-            quantity: i.quantity,
-            price: i.price,
-            portion: i.portionType || 'full',
-            isUpsell: i.isUpsell || false
-        }));
+        const itemsList = items || details || [];
+        const orderDetails = [];
+
+        for (const i of itemsList) {
+            let resolvedItemId = i.id || i.menuItemId;
+
+            if (resolvedItemId === 'mystery_box') {
+                let mysteryItem = await prisma.menuItem.findFirst({
+                    where: { restaurantId: req.body.restaurantId, name: 'Mystery Box' }
+                });
+                if (!mysteryItem) {
+                    let category = await prisma.category.findFirst({
+                        where: { restaurantId: req.body.restaurantId }
+                    });
+                    if (!category) {
+                        category = await prisma.category.create({
+                            data: { restaurantId: req.body.restaurantId, name: 'Specials', icon: 'fas fa-star' }
+                        });
+                    }
+                    mysteryItem = await prisma.menuItem.create({
+                        data: {
+                            restaurantId: req.body.restaurantId,
+                            name: 'Mystery Box',
+                            description: 'Surprise Add-on',
+                            fullPrice: i.price || 49,
+                            categoryId: category.id,
+                            isAvailable: true,
+                            isVeg: true
+                        }
+                    });
+                }
+                resolvedItemId = mysteryItem.id;
+            }
+
+            orderDetails.push({
+                menuItemId: resolvedItemId,
+                quantity: i.quantity,
+                price: i.price,
+                portion: i.portionType || 'full',
+                isUpsell: i.isUpsell || false,
+                marketingSource: i.marketingSource || null
+            });
+        }
 
         console.log("Details to create:", orderDetails);
 
@@ -96,7 +133,8 @@ router.post('/', async (req, res) => {
                 price: d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
-                isUpsell: d.isUpsell || false
+                isUpsell: d.isUpsell || false,
+                marketingSource: d.marketingSource || null
             }))
         };
         res.json(formatted);
@@ -129,7 +167,8 @@ router.patch('/:id/status', async (req, res) => {
                 price: d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
-                isUpsell: d.isUpsell || false
+                isUpsell: d.isUpsell || false,
+                marketingSource: d.marketingSource || null
             }))
         };
         res.json(formatted);
@@ -161,7 +200,8 @@ router.patch('/:id/payment-status', async (req, res) => {
                 price: d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
-                isUpsell: d.isUpsell || false
+                isUpsell: d.isUpsell || false,
+                marketingSource: d.marketingSource || null
             }))
         };
         res.json(formatted);
