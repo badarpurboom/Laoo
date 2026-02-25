@@ -4,10 +4,11 @@ import { useStore } from '../../store';
 import { queryDataWithAI } from '../../services/aiService';
 
 const AIChat: React.FC = () => {
-  const { orders, menuItems, activeRestaurantId, aiConfig } = useStore();
+  const { orders, menuItems, categories, activeRestaurantId, aiConfig } = useStore();
 
   const tenantOrders = orders.filter(o => o.restaurantId === activeRestaurantId);
   const tenantMenuItems = menuItems.filter(m => m.restaurantId === activeRestaurantId);
+  const tenantCategories = categories.filter(c => c.restaurantId === activeRestaurantId);
 
   const [query, setQuery] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -30,13 +31,18 @@ const AIChat: React.FC = () => {
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setIsTyping(true);
 
+    // Pass conversation history (skip initial greeting, skip current message)
+    const history = messages.slice(1); // exclude the first welcome message
+
     const aiResponse = await queryDataWithAI(
       userMsg,
       tenantOrders,
       tenantMenuItems,
+      tenantCategories,
       aiConfig?.apiKey || '',
       aiConfig?.provider || 'gemini',
-      aiConfig?.model
+      aiConfig?.model,
+      history
     );
 
     setIsTyping(false);

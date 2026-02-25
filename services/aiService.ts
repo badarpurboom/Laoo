@@ -7,40 +7,71 @@ export const queryDataWithAI = async (
     query: string,
     orders: Order[],
     menuItems: MenuItem[],
+    categories: { id: string; name: string }[],
     apiKey: string,
     provider: 'openai' | 'gemini' = 'gemini',
-    model: string = 'gemini-2.0-flash'
+    model: string = 'gemini-2.0-flash',
+    conversationHistory: { role: 'user' | 'assistant'; content: string }[] = []
 ) => {
     if (!apiKey) {
         return "API Key not configured in Settings. Please ask Admin to set it up.";
     }
 
     // Prepare data context for the LLM
+    // Build category map for name lookups
+    const categoryMap: Record<string, string> = {};
+    categories.forEach(c => { categoryMap[c.id] = c.name; });
+
     const dataSummary = {
         totalOrders: orders.length,
         totalRevenue: orders.reduce((sum, o) => sum + o.totalAmount, 0),
-        orderStats: orders.map(o => ({
-            date: o.timestamp,
-            total: o.totalAmount,
-            status: o.status,
-            items: o.items.map((i: any) => i.name)
+        categories: categories.map(c => c.name),
+        menu: menuItems.map(m => ({
+            name: m.name,
+            fullPrice: m.fullPrice,
+            halfPrice: m.halfPrice || null,
+            category: categoryMap[m.categoryId] || m.categoryId,
+            isVeg: m.isVeg,
+            isAvailable: m.isAvailable,
         })),
-        menu: menuItems.map(m => ({ name: m.name, price: m.fullPrice, category: m.categoryId }))
+        orders: orders.map(o => ({
+            date: o.timestamp,
+            totalAmount: o.totalAmount,
+            status: o.status,
+            orderType: o.orderType,
+            tableNumber: o.tableNumber || null,
+            customerName: o.customerName || null,
+            paymentStatus: o.paymentStatus,
+            items: o.items.map((i: any) => ({
+                name: i.name,
+                quantity: i.quantity,
+                price: i.price,
+                portion: i.portionType || 'full',
+                isUpsell: i.isUpsell || false,
+            }))
+        }))
     };
+
+    // Build conversation history string for context
+    const historyText = conversationHistory.length > 0
+        ? `\n\nPrevious conversation:\n${conversationHistory.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n')}`
+        : '';
 
     const systemInstruction = `
     You are an expert restaurant business analyst.
     Below is the current JSON data of the restaurant:
     ${JSON.stringify(dataSummary)}
+    ${historyText}
 
-    User Query: "${query}"
+    Current User Query: "${query}"
 
     Instructions:
     1. Answer based ONLY on the provided data.
-    2. If asked for sales, calculate them correctly.
-    3. If asked for best-sellers, analyze the item frequencies in orders.
-    4. Provide actionable insights if possible.
-    5. Format the output in Markdown with bold headers.
+    2. Remember the previous conversation context above when answering.
+    3. If asked for sales, calculate them correctly.
+    4. If asked for best-sellers, analyze the item frequencies in orders.
+    5. Provide actionable insights if possible.
+    6. Format the output in Markdown with bold headers.
   `;
 
     try {
