@@ -25,8 +25,19 @@ const MenuManager: React.FC = () => {
   const [newCategoriesText, setNewCategoriesText] = useState('');
   const [isSubmittingCats, setIsSubmittingCats] = useState(false);
 
+  // Filtering state
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const tenantCategories = categories.filter(c => c.restaurantId === activeRestaurantId);
   const tenantMenuItems = menuItems.filter(m => m.restaurantId === activeRestaurantId);
+
+  const filteredMenuItems = tenantMenuItems.filter(item => {
+    const matchesCategory = selectedCategory === '' || item.categoryId === selectedCategory;
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
 
   const getEmptyItem = (): MenuItem => ({
     id: '',
@@ -101,9 +112,19 @@ const MenuManager: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="relative">
             <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input type="text" placeholder="Search menu..." className="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64" />
+            <input
+              type="text"
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64"
+            />
           </div>
-          <select className="bg-slate-100 border-none rounded-lg text-sm px-4 py-2 outline-none">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="bg-slate-100 border-none rounded-lg text-sm px-4 py-2 outline-none"
+          >
             <option value="">All Categories</option>
             {tenantCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -125,7 +146,7 @@ const MenuManager: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {tenantMenuItems.map(item => (
+        {filteredMenuItems.map(item => (
           <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group">
             <div className="h-40 relative">
               <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -171,7 +192,7 @@ const MenuManager: React.FC = () => {
             </div>
           </div>
         ))}
-        {tenantMenuItems.length === 0 && (
+        {filteredMenuItems.length === 0 && (
           <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-300">
               <i className="fas fa-plus text-2xl"></i>
