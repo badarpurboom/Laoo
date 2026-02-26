@@ -260,6 +260,7 @@ const CustomerView: React.FC = () => {
 
   const [activeTable, setActiveTable] = useState<string>('');
   const [showBill, setShowBill] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // AI Flash Popups
   const [showPopup1, setShowPopup1] = useState(false);
@@ -635,7 +636,7 @@ const CustomerView: React.FC = () => {
       {isLoading && <Preloader />}
       <div className={`pb-20 min-h-screen bg-slate-50/50 transition-opacity duration-700 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
         {/* Header - Glassmorphism */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-4 flex justify-between items-center transition-all duration-300">
+        <header className={`sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-4 justify-between items-center transition-all duration-300 ${isSearchFocused ? 'hidden' : 'flex'}`}>
           <div className="flex items-center gap-3">
             <img src={settings.logoUrl} alt="logo" className="w-10 h-10 rounded-lg shadow-sm" />
             <div className="flex flex-col">
@@ -686,38 +687,46 @@ const CustomerView: React.FC = () => {
 
 
         {/* Dynamic Marketing Banner Carousel */}
-        <BannerCarousel />
+        {!isSearchFocused && <BannerCarousel />}
 
         {/* Search Bar */}
-        <div className="px-4 mb-4">
-          <div className="relative group">
-            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors"></i>
-            <input
-              type="text"
-              placeholder="Search for delicious items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={(e) => {
-                const target = e.target as HTMLInputElement;
-                setTimeout(() => {
-                  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 400);
-              }}
-              className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-sm font-medium"
-            />
-            {searchQuery && (
+        <div className={`transition-all duration-300 ${isSearchFocused ? 'sticky top-0 left-0 right-0 z-50 pt-4 pb-4 px-4 bg-slate-50/95 backdrop-blur-md shadow-sm' : 'px-4 mb-4'}`}>
+          <div className="relative group flex items-center gap-2">
+            {isSearchFocused && (
               <button
-                onClick={() => { setSearchQuery(''); }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
+                onClick={() => {
+                  setIsSearchFocused(false);
+                  setSearchQuery('');
+                }}
+                className="w-12 h-[56px] flex-shrink-0 flex items-center justify-center bg-white border border-slate-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all font-bold"
               >
-                <i className="fas fa-times-circle"></i>
+                <i className="fas fa-arrow-left"></i>
               </button>
             )}
+            <div className="relative flex-1">
+              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors"></i>
+              <input
+                type="text"
+                placeholder="Search for delicious items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-sm font-medium"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
+                >
+                  <i className="fas fa-times-circle"></i>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Categories */}
-        <div className="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar mb-6">
+        <div className={`flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar mb-6 ${isSearchFocused ? 'hidden' : ''}`}>
           <button
             onClick={() => setSelectedCategory('all')}
             className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm ${selectedCategory === 'all'
