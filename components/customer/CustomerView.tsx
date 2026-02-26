@@ -294,6 +294,38 @@ const CustomerView: React.FC = () => {
     });
   }, [cart.length, settings.aiUpsellEnabled, recommendedItems.length]);
 
+  // 🍰 Recovery: Post-Meal Dessert Prompt after refresh
+  React.useEffect(() => {
+    if (!settings.dessertPromptEnabled || (settings.dessertPromptItemIds || []).length === 0) return;
+    if (!activeRestaurantId) return;
+
+    const storageKey = `dessert_prompt_order_${activeRestaurantId}`;
+    const storedTimestamp = localStorage.getItem(storageKey);
+    if (storedTimestamp) {
+      const orderTime = parseInt(storedTimestamp);
+      const now = Date.now();
+      const elapsed = now - orderTime;
+      const targetDelay = (settings.dessertPromptMinutes || 15) * 60 * 1000;
+      const MaxWindow = 2 * 60 * 60 * 1000; // 2 hours
+
+      if (elapsed >= targetDelay && elapsed < MaxWindow) {
+        // Show immediately if time passed but within 2 hours
+        setShowDessertPrompt(true);
+        localStorage.removeItem(storageKey);
+      } else if (elapsed < targetDelay) {
+        // Set timer for remaining time
+        const timer = setTimeout(() => {
+          setShowDessertPrompt(true);
+          localStorage.removeItem(storageKey);
+        }, targetDelay - elapsed);
+        return () => clearTimeout(timer);
+      } else {
+        // Too old, clear it
+        localStorage.removeItem(storageKey);
+      }
+    }
+  }, [activeRestaurantId, settings.dessertPromptEnabled, settings.dessertPromptMinutes, settings.dessertPromptItemIds]);
+
   const filteredMenu = useMemo(() => {
     let results = tenantMenuItems;
 
@@ -478,11 +510,18 @@ const CustomerView: React.FC = () => {
 
       await addOrder(orderToSubmit);
 
-      // Start dessert prompt timer for dine-in orders
-      if (orderType === 'dine-in' && settings.dessertPromptEnabled && (settings.dessertPromptItemIds || []).length > 0) {
+      // 🕒 Post-Meal Dessert Prompt (Persistence Ready)
+      if (settings.dessertPromptEnabled && (settings.dessertPromptItemIds || []).length > 0 && activeRestaurantId) {
+        const storageKey = `dessert_prompt_order_${activeRestaurantId}`;
+        const now = Date.now();
+        localStorage.setItem(storageKey, now.toString());
+
         const delay = (settings.dessertPromptMinutes || 15) * 60 * 1000;
         setTimeout(() => {
-          setShowDessertPrompt(true);
+          if (localStorage.getItem(storageKey)) {
+            setShowDessertPrompt(true);
+            localStorage.removeItem(storageKey);
+          }
         }, delay);
       }
 
