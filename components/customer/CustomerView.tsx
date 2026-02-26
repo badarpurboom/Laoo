@@ -103,43 +103,43 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
 
   return (
     <div
-      className="group bg-white rounded-3xl p-3 shadow-[0_10px_40px_rgb(0,0,0,0.04)] border border-white flex gap-4 transition-all duration-300 hover:shadow-[0_20px_60px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 cursor-pointer overflow-hidden relative"
+      className="group bg-white rounded-3xl p-2.5 shadow-[0_10px_40px_rgb(0,0,0,0.04)] border border-white flex gap-3 transition-all duration-300 hover:shadow-[0_20px_60px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 cursor-pointer overflow-hidden relative"
       onClick={zoomIn}
     >
       <div className="relative flex-shrink-0" style={{ zIndex: imgZoomed ? 20 : 'auto' }}>
         <img
           src={item.imageUrl}
           alt={item.name}
-          className="w-24 h-24 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-500"
+          className="w-20 h-20 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-500"
           style={{
-            transform: imgZoomed ? 'scale(1.55)' : undefined,
+            transform: imgZoomed ? 'scale(1.7)' : undefined,
             transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
             position: 'relative',
             zIndex: imgZoomed ? 20 : 'auto',
           }}
         />
 
-        <div className={`absolute -top-1 -left-1 px-2 py-1 rounded-br-xl shadow-sm z-10 ${item.isVeg ? 'bg-green-500' : 'bg-red-500'}`}>
-          <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+        <div className={`absolute -top-1 -left-1 px-1.5 py-0.5 rounded-br-xl shadow-sm z-10 ${item.isVeg ? 'bg-green-500' : 'bg-red-500'}`}>
+          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-between py-1">
+      <div className="flex-1 flex flex-col justify-between py-0.5">
         <div>
           <div className="flex justify-between items-start">
-            <h3 className="font-extrabold text-slate-800 text-sm leading-tight group-hover:text-orange-600 transition-colors uppercase tracking-tight">{item.name}</h3>
+            <h3 className="font-extrabold text-slate-800 text-[13px] leading-tight group-hover:text-orange-600 transition-colors uppercase tracking-tight">{item.name}</h3>
           </div>
-          <p className="text-[10px] text-slate-400 font-medium line-clamp-2 mt-1 italic">{item.description}</p>
+          <p className="text-[9px] text-slate-400 font-medium line-clamp-2 mt-0.5 italic">{item.description}</p>
 
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-2 flex items-center justify-between">
             <div className="flex flex-col">
               {fakeOriginalPrice && (
-                <span className="text-[10px] text-slate-300 line-through leading-none font-bold">₹{fakeOriginalPrice}</span>
+                <span className="text-[9px] text-slate-300 line-through leading-none font-bold">₹{fakeOriginalPrice}</span>
               )}
               <div className="flex items-center gap-1.5">
-                <span className={`font-black text-base ${fakeOriginalPrice ? 'text-rose-500' : 'text-slate-900'}`}>₹{price}</span>
+                <span className={`font-black text-[15px] ${fakeOriginalPrice ? 'text-rose-500' : 'text-slate-900'}`}>₹{price}</span>
                 {fakeDiscountPct > 0 && (
-                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse border border-rose-400">
+                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-[0_0_8px_rgba(244,63,94,0.5)] animate-pulse border border-rose-400/50">
                     {fakeDiscountPct}% OFF
                   </span>
                 )}
@@ -690,7 +690,7 @@ const CustomerView: React.FC = () => {
         {!isSearchFocused && <BannerCarousel />}
 
         {/* Search Bar */}
-        <div className={`transition-all duration-300 ${isSearchFocused ? 'sticky top-0 left-0 right-0 z-50 pt-4 pb-4 px-4 bg-slate-50/95 backdrop-blur-md shadow-sm' : 'px-4 mb-4'}`}>
+        <div className={`transition-all duration-300 ${isSearchFocused ? 'sticky top-0 left-0 right-0 z-50 pt-3 pb-3 px-4 bg-slate-50/95 backdrop-blur-md shadow-sm' : 'px-4 mb-3'}`}>
           <div className="relative group flex items-center gap-2">
             {isSearchFocused && (
               <button
@@ -698,7 +698,7 @@ const CustomerView: React.FC = () => {
                   setIsSearchFocused(false);
                   setSearchQuery('');
                 }}
-                className="w-12 h-[56px] flex-shrink-0 flex items-center justify-center bg-white border border-slate-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all font-bold"
+                className="w-10 h-[48px] flex-shrink-0 flex items-center justify-center bg-white border border-slate-200/50 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.04)] text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all font-bold"
               >
                 <i className="fas fa-arrow-left"></i>
               </button>
@@ -711,7 +711,7 @@ const CustomerView: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-sm font-medium"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200/50 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.04)] focus:ring-2 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-[13px] font-medium"
               />
               {searchQuery && (
                 <button
@@ -726,11 +726,11 @@ const CustomerView: React.FC = () => {
         </div>
 
         {/* Categories */}
-        <div className={`flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar mb-6 ${isSearchFocused ? 'hidden' : ''}`}>
+        <div className={`flex gap-2 px-4 py-1.5 overflow-x-auto no-scrollbar mb-4 ${isSearchFocused ? 'hidden' : ''}`}>
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm ${selectedCategory === 'all'
-              ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white translate-y-[-2px] shadow-orange-200'
+            className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold transition-all duration-300 shadow-sm ${selectedCategory === 'all'
+              ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white translate-y-[-1px] shadow-orange-200'
               : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}
           >
             All Items
@@ -739,8 +739,8 @@ const CustomerView: React.FC = () => {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm ${selectedCategory === cat.id
-                ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white translate-y-[-2px] shadow-orange-200'
+              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold transition-all duration-300 shadow-sm ${selectedCategory === cat.id
+                ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white translate-y-[-1px] shadow-orange-200'
                 : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}
             >
               {cat.name}
