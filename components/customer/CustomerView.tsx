@@ -118,14 +118,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
             zIndex: imgZoomed ? 20 : 'auto',
           }}
         />
-        {/* Fake Discount Badge — only if category has a fake discount */}
-        {fakeDiscountPct > 0 && (
-          <div className="absolute top-1 right-1 z-10" style={{ zIndex: imgZoomed ? 22 : 10 }}>
-            <div className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-md animate-pulse">
-              ⬇ {fakeDiscountPct}% OFF
-            </div>
-          </div>
-        )}
+
         <span className={`absolute top-1 left-1 text-[8px] px-1.5 py-0.5 rounded-full font-bold ${item.isVeg ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
           style={{ zIndex: imgZoomed ? 21 : 'auto' }}>
           {item.isVeg ? 'VEG' : 'N-VEG'}
@@ -142,7 +135,14 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
               {fakeOriginalPrice && (
                 <span className="text-[10px] text-slate-400 line-through leading-none">₹{fakeOriginalPrice}</span>
               )}
-              <span className={`font-black text-sm ${fakeOriginalPrice ? 'text-rose-600' : 'text-orange-600'}`}>₹{price}</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`font-black text-sm ${fakeOriginalPrice ? 'text-rose-600' : 'text-orange-600'}`}>₹{price}</span>
+                {fakeDiscountPct > 0 && (
+                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
+                    ⬇ {fakeDiscountPct}% OFF
+                  </span>
+                )}
+              </div>
             </div>
 
             {item.halfPrice && (
