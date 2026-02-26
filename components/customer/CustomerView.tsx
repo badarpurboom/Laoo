@@ -1049,7 +1049,7 @@ const CustomerView: React.FC = () => {
                       return (
                         <div className="flex justify-between items-center text-emerald-600 text-sm bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-xl">
                           <span className="font-bold flex items-center gap-1"><i className="fas fa-tag text-emerald-500"></i> Your Savings</span>
-                          <span className="font-black">-₹{totalFakeSavings.toFixed(0)}</span>
+                          <span className="font-black">₹{totalFakeSavings.toFixed(0)}</span>
                         </div>
                       );
                     })()}
