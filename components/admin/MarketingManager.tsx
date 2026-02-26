@@ -89,7 +89,7 @@ const MarketingManager: React.FC = () => {
         if (!activeRestaurantId) return;
         setIsPickingAI(true);
         try {
-            const resp = await aiServiceApi.pickFlashItems(activeRestaurantId, "");
+            const resp = await aiServiceApi.pickFlashItems(activeRestaurantId, aiConfig.apiKey);
             if (resp.data?.success) {
                 await updateSettings({
                     ...settings,
