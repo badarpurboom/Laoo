@@ -6,7 +6,7 @@ import { restaurantService, aiServiceApi } from '../../services/api';
 const API_URL = '/api';
 
 const MarketingManager: React.FC = () => {
-    const { banners, fetchBanners, addBanner, updateBanner, deleteBanner, activeRestaurantId, settings, updateSettings, menuItems } = useStore();
+    const { banners, fetchBanners, addBanner, updateBanner, deleteBanner, activeRestaurantId, settings, updateSettings, menuItems, aiConfig } = useStore();
     const [uploading, setUploading] = useState(false);
     const [newTitle, setNewTitle] = useState('');
     const [newImageUrl, setNewImageUrl] = useState('');
