@@ -129,7 +129,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
           <div className="flex justify-between items-start">
             <h3 className="font-extrabold text-slate-800 text-sm leading-tight group-hover:text-orange-600 transition-colors uppercase tracking-tight">{item.name}</h3>
           </div>
-          <p className="text-[10px] text-slate-400 font-medium line-clamp-2 mt-1 italic">"{item.description}"</p>
+          <p className="text-[10px] text-slate-400 font-medium line-clamp-2 mt-1 italic">{item.description}</p>
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex flex-col">
@@ -139,8 +139,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
               <div className="flex items-center gap-1.5">
                 <span className={`font-black text-base ${fakeOriginalPrice ? 'text-rose-500' : 'text-slate-900'}`}>₹{price}</span>
                 {fakeDiscountPct > 0 && (
-                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-lg shadow-inner">
-                    SALE
+                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-lg shadow-[0_0_10px_rgba(244,63,94,0.6)] animate-pulse border border-rose-400">
+                    {fakeDiscountPct}% OFF
                   </span>
                 )}
               </div>
@@ -152,13 +152,13 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
                   onClick={(e) => { e.stopPropagation(); setSelectedPortion('half'); }}
                   className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${selectedPortion === 'half' ? 'bg-white text-orange-600 shadow-md scale-105' : 'text-slate-400'}`}
                 >
-                  ½
+                  Half
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setSelectedPortion('full'); }}
                   className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${selectedPortion === 'full' ? 'bg-white text-orange-600 shadow-md scale-105' : 'text-slate-400'}`}
                 >
-                  1
+                  Full
                 </button>
               </div>
             )}
