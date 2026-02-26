@@ -103,7 +103,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
 
   return (
     <div
-      className="group bg-white rounded-3xl p-3 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-50 flex gap-4 transition-all duration-300 hover:shadow-[0_10px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer overflow-hidden relative"
+      className="group bg-white rounded-3xl p-3 shadow-[0_10px_40px_rgb(0,0,0,0.04)] border border-white flex gap-4 transition-all duration-300 hover:shadow-[0_20px_60px_rgb(0,0,0,0.1)] hover:-translate-y-1.5 cursor-pointer overflow-hidden relative"
       onClick={zoomIn}
     >
       <div className="relative flex-shrink-0" style={{ zIndex: imgZoomed ? 20 : 'auto' }}>
@@ -579,7 +579,7 @@ const CustomerView: React.FC = () => {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 min-h-screen bg-slate-50/50">
       {/* Header - Glassmorphism */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-4 flex justify-between items-center transition-all duration-300">
         <div className="flex items-center gap-3">
@@ -649,7 +649,7 @@ const CustomerView: React.FC = () => {
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }, 400);
             }}
-            className="w-full pl-12 pr-4 py-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-sm font-medium"
+            className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-sm font-medium"
           />
           {searchQuery && (
             <button
