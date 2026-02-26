@@ -103,61 +103,62 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
 
   return (
     <div
-      className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex gap-4 transition-all hover:shadow-md cursor-pointer"
+      className="group bg-white rounded-3xl p-3 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-50 flex gap-4 transition-all duration-300 hover:shadow-[0_10px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 cursor-pointer overflow-hidden relative"
       onClick={zoomIn}
     >
       <div className="relative flex-shrink-0" style={{ zIndex: imgZoomed ? 20 : 'auto' }}>
         <img
           src={item.imageUrl}
           alt={item.name}
-          className="w-24 h-24 rounded-xl object-cover"
+          className="w-24 h-24 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-500"
           style={{
-            transform: imgZoomed ? 'scale(1.55)' : 'scale(1)',
-            transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            transform: imgZoomed ? 'scale(1.55)' : undefined,
+            transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
             position: 'relative',
             zIndex: imgZoomed ? 20 : 'auto',
           }}
         />
 
-        <span className={`absolute top-1 left-1 text-[8px] px-1.5 py-0.5 rounded-full font-bold ${item.isVeg ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
-          style={{ zIndex: imgZoomed ? 21 : 'auto' }}>
-          {item.isVeg ? 'VEG' : 'N-VEG'}
-        </span>
+        <div className={`absolute -top-1 -left-1 px-2 py-1 rounded-br-xl shadow-sm z-10 ${item.isVeg ? 'bg-green-500' : 'bg-red-500'}`}>
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-between">
+      <div className="flex-1 flex flex-col justify-between py-1">
         <div>
-          <h3 className="font-bold text-slate-800 text-sm leading-tight">{item.name}</h3>
-          <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">{item.description}</p>
+          <div className="flex justify-between items-start">
+            <h3 className="font-extrabold text-slate-800 text-sm leading-tight group-hover:text-orange-600 transition-colors uppercase tracking-tight">{item.name}</h3>
+          </div>
+          <p className="text-[10px] text-slate-400 font-medium line-clamp-2 mt-1 italic">"{item.description}"</p>
 
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex flex-col">
               {fakeOriginalPrice && (
-                <span className="text-[10px] text-slate-400 line-through leading-none">₹{fakeOriginalPrice}</span>
+                <span className="text-[10px] text-slate-300 line-through leading-none font-bold">₹{fakeOriginalPrice}</span>
               )}
               <div className="flex items-center gap-1.5">
-                <span className={`font-black text-sm ${fakeOriginalPrice ? 'text-rose-600' : 'text-orange-600'}`}>₹{price}</span>
+                <span className={`font-black text-base ${fakeOriginalPrice ? 'text-rose-500' : 'text-slate-900'}`}>₹{price}</span>
                 {fakeDiscountPct > 0 && (
-                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-sm">
-                    ⬇ {fakeDiscountPct}% OFF
+                  <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-lg shadow-inner">
+                    SALE
                   </span>
                 )}
               </div>
             </div>
 
             {item.halfPrice && (
-              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100 shadow-inner">
                 <button
                   onClick={(e) => { e.stopPropagation(); setSelectedPortion('half'); }}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${selectedPortion === 'half' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${selectedPortion === 'half' ? 'bg-white text-orange-600 shadow-md scale-105' : 'text-slate-400'}`}
                 >
-                  Half
+                  ½
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setSelectedPortion('full'); }}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all ${selectedPortion === 'full' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  className={`px-3 py-1 rounded-lg text-[9px] font-black transition-all ${selectedPortion === 'full' ? 'bg-white text-orange-600 shadow-md scale-105' : 'text-slate-400'}`}
                 >
-                  Full
+                  1
                 </button>
               </div>
             )}
@@ -166,17 +167,17 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
 
         <div className="flex justify-end mt-2">
           {inCart ? (
-            <div className="flex items-center gap-3 bg-white rounded-full px-2 py-1 shadow-sm border border-orange-100">
+            <div className="flex items-center gap-4 bg-slate-950 text-white rounded-2xl px-2 py-1.5 shadow-lg animate-in zoom-in-75 duration-200">
               <button
                 onClick={(e) => { e.stopPropagation(); updateQuantity(cartItemId, -1); }}
-                className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full"
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
               >
                 <i className="fas fa-minus text-[10px]"></i>
               </button>
-              <span className="text-xs font-black w-4 text-center text-slate-800">{inCart.quantity}</span>
+              <span className="text-sm font-black w-4 text-center">{inCart.quantity}</span>
               <button
                 onClick={(e) => { e.stopPropagation(); updateQuantity(cartItemId, 1); }}
-                className="w-6 h-6 flex items-center justify-center text-orange-500 hover:bg-orange-50 rounded-full"
+                className="w-8 h-8 flex items-center justify-center text-orange-400 hover:text-orange-300 transition-colors"
               >
                 <i className="fas fa-plus text-[10px]"></i>
               </button>
@@ -185,10 +186,11 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, cart, addToCart, upda
             <button
               disabled={!item.isAvailable}
               onClick={(e) => { e.stopPropagation(); addToCart(item, selectedPortion); }}
-              className="bg-orange-500 text-white px-4 py-1.5 rounded-full flex items-center gap-2 hover:bg-orange-600 disabled:bg-slate-300 shadow-sm transition-all active:scale-95 text-[10px] font-black uppercase tracking-wider"
+              className="group/btn bg-slate-900 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 hover:bg-orange-500 disabled:bg-slate-200 shadow-lg shadow-slate-200 transition-all active:scale-90 text-[11px] font-black uppercase tracking-widest overflow-hidden relative"
             >
-              Add
-              <i className="fas fa-plus text-[8px]"></i>
+              <span className="relative z-10">Add</span>
+              <i className="fas fa-plus text-[10px] relative z-10 group-hover/btn:rotate-90 transition-transform"></i>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-rose-600 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
             </button>
           )}
         </div>
@@ -578,8 +580,8 @@ const CustomerView: React.FC = () => {
 
   return (
     <div className="pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white shadow-sm px-4 py-4 flex justify-between items-center">
+      {/* Header - Glassmorphism */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-4 flex justify-between items-center transition-all duration-300">
         <div className="flex items-center gap-3">
           <img src={settings.logoUrl} alt="logo" className="w-10 h-10 rounded-lg shadow-sm" />
           <div className="flex flex-col">
@@ -638,17 +640,16 @@ const CustomerView: React.FC = () => {
           <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors"></i>
           <input
             type="text"
-            placeholder="Search for dishes..."
+            placeholder="Search for delicious items..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={(e) => {
               const target = e.target as HTMLInputElement;
-              // Add a small delay for the mobile keyboard to pop up before scrolling
               setTimeout(() => {
                 target.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }, 400);
             }}
-            className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+            className="w-full pl-12 pr-4 py-4 bg-white/50 backdrop-blur-sm border border-slate-100 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-400 outline-none transition-all text-sm font-medium"
           />
           {searchQuery && (
             <button
@@ -662,10 +663,12 @@ const CustomerView: React.FC = () => {
       </div>
 
       {/* Categories */}
-      <div className="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar mb-4">
+      <div className="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar mb-6">
         <button
           onClick={() => setSelectedCategory('all')}
-          className={`whitespace-nowrap px-6 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === 'all' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+          className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm ${selectedCategory === 'all'
+            ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white translate-y-[-2px] shadow-orange-200'
+            : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}
         >
           All Items
         </button>
@@ -673,7 +676,9 @@ const CustomerView: React.FC = () => {
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`whitespace-nowrap px-6 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat.id ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}
+            className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm ${selectedCategory === cat.id
+              ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white translate-y-[-2px] shadow-orange-200'
+              : 'bg-white text-slate-500 border border-slate-100 hover:bg-slate-50'}`}
           >
             {cat.name}
           </button>
@@ -711,17 +716,17 @@ const CustomerView: React.FC = () => {
       </div>
 
 
-      {/* Sticky Bottom Order Bar (View Cart) */}
+      {/* Sticky Bottom Order Bar (Floating Island Design) */}
       {
         cart.length > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
-            <div className="bg-slate-900 text-white p-3 pr-4 rounded-2xl shadow-2xl flex justify-between items-center animate-in slide-in-from-bottom duration-300">
-              <div className="flex items-center gap-4 pl-2">
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
+            <div className="bg-slate-900/95 backdrop-blur-xl text-white p-3.5 pr-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex justify-between items-center animate-in slide-in-from-bottom-10 fade-in duration-500 border border-white/10">
+              <div className="flex items-center gap-4 pl-4 border-r border-white/10 pr-4">
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                  <span className="text-[10px] text-orange-400 font-bold uppercase tracking-[0.1em]">
                     {cart.reduce((s, i) => s + i.quantity, 0)} {cart.reduce((s, i) => s + i.quantity, 0) === 1 ? 'Item' : 'Items'}
                   </span>
-                  <span className="text-xl font-black">₹{finalTotal.toFixed(0)}</span>
+                  <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">₹{finalTotal.toFixed(0)}</span>
                 </div>
               </div>
               <button
@@ -729,10 +734,10 @@ const CustomerView: React.FC = () => {
                   setShowCart(true);
                   if (cart.length > 0) fetchAIRecommendations(cart);
                 }}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-black text-sm transition-all active:scale-95 shadow-lg shadow-orange-500/20 flex items-center gap-2"
+                className="bg-gradient-to-r from-orange-500 to-rose-600 hover:from-orange-600 hover:to-rose-700 text-white px-8 py-4 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-lg shadow-orange-500/30 flex items-center gap-2 group"
               >
-                View Cart
-                <i className="fas fa-chevron-right text-[10px]"></i>
+                PROCEED
+                <i className="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
               </button>
             </div>
           </div>
