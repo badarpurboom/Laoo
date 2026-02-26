@@ -772,10 +772,10 @@ const CustomerView: React.FC = () => {
                           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-100 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-xl"></div>
                             <h3 className="text-xs font-black text-indigo-800 mb-3 flex items-center gap-1.5 uppercase tracking-wider relative z-10">
-                              <i className="fas fa-magic text-indigo-500"></i> Perfect Add-ons For You
+                              <i className="fas fa-magic text-indigo-500"></i> Cart Exclusive Add-ons
                               {settings.aiMarketingEnabled && (settings.maxAiDiscountPct || 0) > 0 && (
-                                <span className="ml-auto text-[9px] font-bold bg-rose-500 text-white px-2 py-0.5 rounded-full normal-case tracking-normal">
-                                  🔥 Up to {settings.maxAiDiscountPct}% OFF
+                                <span className="ml-auto text-[9px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full normal-case tracking-normal">
+                                  🎉 Unlocked for your cart!
                                 </span>
                               )}
                             </h3>
@@ -792,8 +792,8 @@ const CustomerView: React.FC = () => {
                                 return (
                                   <div key={item.id} className="min-w-[130px] w-[130px] bg-white rounded-xl p-2 shadow-sm border border-indigo-50/50 flex flex-col gap-2 group relative overflow-hidden">
                                     {discPct > 0 && (
-                                      <div className="absolute top-1 left-1 z-10 bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                                        -{discPct}%
+                                      <div className="absolute top-1 left-1 z-10 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                                        Save ₹{item.fullPrice - discountedPrice}
                                       </div>
                                     )}
                                     <div className="overflow-hidden rounded-lg">
@@ -1036,6 +1036,23 @@ const CustomerView: React.FC = () => {
                         <span>₹{deliveryFee.toFixed(0)}</span>
                       </div>
                     )}
+                    {/* 💰 Savings Summary — shows total fake savings to reinforce the deal */}
+                    {(() => {
+                      const totalFakeSavings = cart.reduce((sum, cartItem) => {
+                        const cat = tenantCategories.find(c => c.id === cartItem.categoryId);
+                        const disc = cat?.fakeDiscountPct || 0;
+                        if (disc <= 0) return sum;
+                        const fakeOriginal = Math.round(cartItem.price / (1 - disc / 100));
+                        return sum + ((fakeOriginal - cartItem.price) * cartItem.quantity);
+                      }, 0);
+                      if (totalFakeSavings <= 0) return null;
+                      return (
+                        <div className="flex justify-between items-center text-emerald-600 text-sm bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-xl">
+                          <span className="font-bold flex items-center gap-1"><i className="fas fa-tag text-emerald-500"></i> Your Savings</span>
+                          <span className="font-black">-₹{totalFakeSavings.toFixed(0)}</span>
+                        </div>
+                      );
+                    })()}
                     <div className="flex justify-between text-lg font-bold text-slate-800">
                       <span>Total</span>
                       <span>₹{finalTotal.toFixed(0)}</span>
@@ -1179,16 +1196,20 @@ const CustomerView: React.FC = () => {
                 <button onClick={handleSkipPopup1} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-sm transition-colors z-20">
                   <i className="fas fa-times"></i>
                 </button>
-                <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
-                  <i className="fas fa-star text-rose-400 animate-pulse"></i> Top Rated
-                </h4>
+                {/* "Exclusive Unlocked" header */}
+                <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg px-2 py-1 mb-3 flex items-center gap-1.5">
+                  <i className="fas fa-lock-open text-rose-400 text-[9px] animate-pulse"></i>
+                  <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">🎉 Exclusive Deal Unlocked</span>
+                </div>
                 <div className="flex gap-4 relative z-10">
                   <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white leading-tight mb-0.5 truncate">{item.name}</p>
                     <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popup1Text || "🌟 Customer Favorite! Try it today."}</p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm font-black text-rose-400">₹{item.fullPrice}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-rose-400">₹{item.fullPrice}</span>
+                      </div>
                       <button
                         onClick={() => { addToCart(item, 'full', true, 'POPUP'); setShowPopup1(false); }}
                         className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-rose-500/20 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
@@ -1215,16 +1236,21 @@ const CustomerView: React.FC = () => {
                 <button onClick={handleSkipPopup2} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full text-sm transition-colors z-20">
                   <i className="fas fa-times"></i>
                 </button>
-                <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-3 flex items-center gap-1.5 z-10 relative">
-                  <i className="fas fa-fire animate-pulse"></i> Chef's Secret
-                </h4>
+                {/* "Completes your meal" pairing header */}
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-2 py-1 mb-3 flex items-center gap-1.5">
+                  <i className="fas fa-utensils text-amber-400 text-[9px]"></i>
+                  <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest">🍽️ Completes Your Meal</span>
+                </div>
                 <div className="flex gap-4 relative z-10">
                   <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-xl object-cover shadow-sm shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white leading-tight mb-0.5 truncate">{item.name}</p>
-                    <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popup2Text || "🔥 Chef's Secret! Abhi bhi confused ho?"}</p>
+                    <p className="text-[11px] text-slate-300 mb-2 leading-snug font-medium">{settings.popup2Text || "🔥 Pairs perfectly with what you ordered!"}</p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-sm font-black text-amber-400">₹{item.fullPrice}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-amber-400">₹{item.fullPrice}</span>
+                        <span className="text-[9px] text-emerald-400 font-bold">Complete the experience!</span>
+                      </div>
                       <button
                         onClick={() => { addToCart(item, 'full', true, 'POPUP'); setShowPopup2(false); }}
                         className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-lg active:scale-95 transition-all text-center flex items-center justify-center gap-1"
