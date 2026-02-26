@@ -214,7 +214,7 @@ const Preloader: React.FC = () => {
       </div>
       <div className="mt-8 flex flex-col items-center">
         <h2 className="text-xl font-black text-slate-800 tracking-tighter uppercase italic">
-          Bistro<span className="text-orange-500">Laoo</span>
+          <span className="text-orange-500">Laoo</span>
         </h2>
         <div className="flex items-center gap-2 mt-2">
           <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce"></div>
