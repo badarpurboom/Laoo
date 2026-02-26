@@ -29,6 +29,7 @@ export const restaurantService = {
 export const menuService = {
     getCategories: (restaurantId: string) => axiosInstance.get(`/menu/categories/${restaurantId}`),
     addCategory: (category: any) => axiosInstance.post('/menu/categories', category),
+    updateCategory: (id: string, data: any) => axiosInstance.put(`/menu/categories/${id}`, data),
     createCategoriesBulk: (restaurantId: string, categories: { name: string, icon?: string }[]) =>
         axiosInstance.post('/menu/categories/bulk', { restaurantId, categories }),
     deleteCategory: (categoryId: string) => axiosInstance.delete(`/menu/categories/${categoryId}`),

@@ -71,6 +71,7 @@ interface AppState {
   addCategory: (category: Partial<Category>) => Promise<void>;
   addCategoriesBulk: (categories: { name: string, icon?: string }[]) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  updateCategory: (id: string, data: Partial<import('./types').Category>) => Promise<void>;
   updateSettings: (settings: RestaurantSettings) => Promise<void>;
   updateAIConfig: (config: AIConfig) => void;
   updatePaymentConfig: (config: PaymentConfig) => void;
@@ -369,6 +370,12 @@ export const useStore = create<AppState>()(
         set((state) => ({
           categories: state.categories.filter(c => c.id !== id),
           menuItems: state.menuItems.filter(m => m.categoryId !== id)
+        }));
+      },
+      updateCategory: async (id, data) => {
+        const resp = await menuService.updateCategory(id, data);
+        set((state) => ({
+          categories: state.categories.map(c => c.id === id ? { ...c, ...resp.data } : c)
         }));
       },
       updateSettings: async (settings) => {

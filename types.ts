@@ -7,6 +7,7 @@ export interface Category {
   restaurantId: string;
   name: string;
   icon: string;
+  fakeDiscountPct?: number;
 }
 
 export type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'CUSTOMER';

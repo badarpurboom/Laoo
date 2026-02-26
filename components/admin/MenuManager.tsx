@@ -13,6 +13,7 @@ const MenuManager: React.FC = () => {
     deleteMenuItem,
     addCategoriesBulk,
     deleteCategory,
+    updateCategory,
     activeRestaurantId
   } = useStore();
 
@@ -20,6 +21,10 @@ const MenuManager: React.FC = () => {
   const [showCatModal, setShowCatModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isSubmittingItem, setIsSubmittingItem] = useState(false);
+
+  // Category discount editing state: catId -> draft discount pct
+  const [catDiscountDrafts, setCatDiscountDrafts] = useState<Record<string, number>>({});
+  const [savingCatId, setSavingCatId] = useState<string | null>(null);
 
   // Category management state
   const [newCategoriesText, setNewCategoriesText] = useState('');
@@ -347,26 +352,80 @@ const MenuManager: React.FC = () => {
               {/* List Section */}
               <div>
                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Existing Categories ({tenantCategories.length})</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  {tenantCategories.map(cat => (
-                    <div key={cat.id} className="flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-xl hover:border-slate-300 transition-all group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                          <i className={`fas fa-${cat.icon || 'utensils'} text-xs`}></i>
+                <div className="space-y-3">
+                  {tenantCategories.map(cat => {
+                    const currentDiscount = catDiscountDrafts[cat.id] ?? (cat.fakeDiscountPct || 0);
+                    const samplePrice = 100;
+                    const fakeOriginal = currentDiscount > 0 ? Math.round(samplePrice / (1 - currentDiscount / 100)) : null;
+                    return (
+                      <div key={cat.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:border-slate-200 transition-all">
+                        <div className="flex justify-between items-center mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
+                              <i className={`fas fa-${cat.icon || 'utensils'} text-xs`}></i>
+                            </div>
+                            <div>
+                              <span className="text-sm font-bold text-slate-800">{cat.name}</span>
+                              {(cat.fakeDiscountPct || 0) > 0 && (
+                                <span className="ml-2 text-[9px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
+                                  ⬇ {cat.fakeDiscountPct}% OFF active
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => { if (confirm('Delete Category? This will affect items in this category.')) deleteCategory(cat.id); }}
+                            className="text-slate-300 hover:text-red-500 p-2 transition-colors"
+                            title="Delete Category"
+                          >
+                            <i className="fas fa-trash-alt text-sm"></i>
+                          </button>
                         </div>
-                        <span className="text-sm font-bold text-slate-700">{cat.name}</span>
+
+                        {/* Fake Discount Control */}
+                        <div className="bg-gradient-to-br from-orange-50 to-rose-50 border border-orange-100 rounded-xl p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <i className="fas fa-bolt text-orange-500 text-xs"></i>
+                            <span className="text-[10px] font-black text-orange-700 uppercase tracking-wider">Fake Price Drop</span>
+                            <span className="text-[9px] text-slate-400 ml-auto">Customers see a higher crossed-out price</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                type="number"
+                                min="0"
+                                max="80"
+                                value={currentDiscount}
+                                onChange={e => setCatDiscountDrafts(prev => ({ ...prev, [cat.id]: Math.min(80, Math.max(0, parseFloat(e.target.value) || 0)) }))}
+                                className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-orange-400 outline-none pr-8"
+                                placeholder="0"
+                              />
+                              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">%</span>
+                            </div>
+                            {fakeOriginal && (
+                              <div className="text-[10px] text-slate-500 shrink-0">
+                                e.g. <span className="line-through text-slate-400">₹{fakeOriginal}</span> → <span className="font-black text-green-600">₹{samplePrice}</span>
+                              </div>
+                            )}
+                            <button
+                              disabled={savingCatId === cat.id}
+                              onClick={async () => {
+                                setSavingCatId(cat.id);
+                                await updateCategory(cat.id, { fakeDiscountPct: currentDiscount });
+                                setSavingCatId(null);
+                              }}
+                              className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-[10px] font-black transition-all active:scale-95 flex items-center gap-1 disabled:opacity-50"
+                            >
+                              {savingCatId === cat.id ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
+                              Save
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => { if (confirm('Delete Category? This will affect items in this category.')) deleteCategory(cat.id); }}
-                        className="text-slate-300 hover:text-red-500 p-2 transition-colors"
-                        title="Delete Category"
-                      >
-                        <i className="fas fa-trash-alt text-sm"></i>
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {tenantCategories.length === 0 && (
-                    <div className="col-span-2 text-center py-8 text-slate-400">
+                    <div className="text-center py-8 text-slate-400">
                       <i className="fas fa-tags text-4xl mb-3 opacity-20"></i>
                       <p className="text-sm">No categories found. Add some above!</p>
                     </div>

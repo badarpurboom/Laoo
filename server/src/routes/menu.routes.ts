@@ -46,6 +46,19 @@ router.post('/categories/bulk', async (req, res) => {
     }
 });
 
+router.put('/categories/:id', async (req, res) => {
+    try {
+        const { id, restaurantId, ...data } = req.body;
+        const category = await prisma.category.update({
+            where: { id: req.params.id },
+            data: data
+        });
+        res.json(category);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.delete('/categories/:id', async (req, res) => {
     try {
         await prisma.category.delete({
