@@ -12,6 +12,7 @@ const MarketingManager: React.FC = () => {
     const [newImageUrl, setNewImageUrl] = useState('');
     const [isAddingViaUrl, setIsAddingViaUrl] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [isSyncing, setIsSyncing] = useState(false);
     const [isPickingAI, setIsPickingAI] = useState(false);
     const [popup1Text, setPopup1Text] = useState(settings.popup1Text || '');
     const [popup2Text, setPopup2Text] = useState(settings.popup2Text || '');
@@ -29,6 +30,21 @@ const MarketingManager: React.FC = () => {
 
     const handleSaveAIInstructions = () => {
         updateSettings({ ...settings, aiCustomPrompt });
+    };
+
+    const handleSyncMenu = async () => {
+        if (!activeRestaurantId) return;
+        if (!confirm('Are you sure you want to run the AI sync? This will analyze your menu and update Add-on recommendations based on your instructions.')) return;
+        setIsSyncing(true);
+        try {
+            const resp = await aiServiceApi.syncMenu(activeRestaurantId, aiConfig?.apiKey || '');
+            alert(resp.data.message || 'Sync initiated successfully! AI is analyzing your menu.');
+        } catch (err: any) {
+            console.error(err);
+            alert(err.response?.data?.error || 'Failed to sync AI Upsell Data.');
+        } finally {
+            setIsSyncing(false);
+        }
     };
 
     useEffect(() => {
@@ -332,9 +348,19 @@ const MarketingManager: React.FC = () => {
                                 placeholder='e.g. "Only recommend desserts and beverages." or "Focus on promoting high-margin starters like Spring Rolls."'
                                 className="w-full h-24 px-4 py-3 rounded-xl border border-indigo-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white resize-none"
                             />
-                            <p className="mt-2 text-[10px] text-indigo-400 italic">
-                                * These instructions will be sent to the AI whenever it generates new recommendations.
-                            </p>
+                            <div className="mt-4 pt-4 border-t border-indigo-100 flex items-center justify-between">
+                                <p className="text-[10px] text-indigo-400 italic">
+                                    * These instructions will be sent to the AI whenever it generates new recommendations.
+                                </p>
+                                <button
+                                    onClick={handleSyncMenu}
+                                    disabled={isSyncing}
+                                    className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-200 disabled:opacity-50 transition-all flex items-center gap-2"
+                                >
+                                    {isSyncing ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-sync-alt"></i>}
+                                    {isSyncing ? 'Syncing...' : 'Sync Menu for Add-ons'}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Mode Selection */}
