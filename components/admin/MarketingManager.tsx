@@ -15,14 +15,20 @@ const MarketingManager: React.FC = () => {
     const [isPickingAI, setIsPickingAI] = useState(false);
     const [popup1Text, setPopup1Text] = useState(settings.popup1Text || '');
     const [popup2Text, setPopup2Text] = useState(settings.popup2Text || '');
+    const [aiCustomPrompt, setAiCustomPrompt] = useState(settings.aiCustomPrompt || '');
 
     useEffect(() => {
         setPopup1Text(settings.popup1Text || '');
         setPopup2Text(settings.popup2Text || '');
-    }, [settings.popup1Text, settings.popup2Text]);
+        setAiCustomPrompt(settings.aiCustomPrompt || '');
+    }, [settings.popup1Text, settings.popup2Text, settings.aiCustomPrompt]);
 
     const handleSaveTaglines = () => {
         updateSettings({ ...settings, popup1Text, popup2Text });
+    };
+
+    const handleSaveAIInstructions = () => {
+        updateSettings({ ...settings, aiCustomPrompt });
     };
 
     useEffect(() => {
@@ -301,6 +307,34 @@ const MarketingManager: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* AI Custom Instructions */}
+                        <div className="mb-6 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 shadow-sm">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-indigo-900 flex items-center gap-2">
+                                        <i className="fas fa-brain"></i> AI Custom Instructions (Prompt)
+                                    </label>
+                                    <p className="text-xs text-indigo-600/70">Give specific directions to the AI on what items to prioritize or avoid.</p>
+                                </div>
+                                <button
+                                    onClick={handleSaveAIInstructions}
+                                    disabled={aiCustomPrompt === (settings.aiCustomPrompt || '')}
+                                    className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                >
+                                    Save Instructions
+                                </button>
+                            </div>
+                            <textarea
+                                value={aiCustomPrompt}
+                                onChange={(e) => setAiCustomPrompt(e.target.value)}
+                                placeholder='e.g. "Only recommend desserts and beverages." or "Focus on promoting high-margin starters like Spring Rolls."'
+                                className="w-full h-24 px-4 py-3 rounded-xl border border-indigo-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white resize-none"
+                            />
+                            <p className="mt-2 text-[10px] text-indigo-400 italic">
+                                * These instructions will be sent to the AI whenever it generates new recommendations.
+                            </p>
                         </div>
 
                         {/* Mode Selection */}

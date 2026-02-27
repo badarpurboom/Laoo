@@ -59,6 +59,7 @@ model Restaurant {
   dessertPromptEnabled  Boolean @default(false)
   dessertPromptMinutes  Int     @default(15)
   dessertPromptItemIds  String? // JSON array of up to 3 dessert/drink item IDs
+  aiCustomPrompt        String? // Custom instructions for AI behavior
   
   createdAt   DateTime   @default(now())
   categories  Category[]

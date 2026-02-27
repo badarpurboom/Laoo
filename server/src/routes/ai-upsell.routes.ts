@@ -108,6 +108,7 @@ router.post('/sync-menu', async (req, res) => {
 
                     const prompt = `
                     You are an expert restaurant up-seller. 
+                    ${restaurant.aiCustomPrompt ? `CRITICAL USER INSTRUCTIONS: ${restaurant.aiCustomPrompt}\n` : ''}
                     Available Restaurant Menu:
                     ${JSON.stringify(menuItemsShort)}
 
@@ -228,10 +229,16 @@ router.post('/pick-flash-items', async (req, res) => {
 
         const prompt = `
         You are an expert restaurant up-seller. 
+        ${restaurant.aiCustomPrompt ? `CRITICAL USER INSTRUCTIONS: ${restaurant.aiCustomPrompt}\n` : ''}
         Available Restaurant Menu:
         ${JSON.stringify(menuItemsShort)}
 
-        Task: Select EXACTLY 2 menu items from the available menu that are visually appealing or highly recommended for up-selling.
+        Task: Select EXACTLY 2 menu items from the available menu that are best for impulse buying in a checkout popup.
+        CRITICAL RULES for Selection:
+        1. Prioritize LOW to MID-PRICED items (e.g. Desserts, Drinks, Sides, Breads).
+        2. DO NOT select expensive Main Courses or Combo Meals. The selected items should ideally be less than 50% of an average bill's value to encourage impulse add-ons without sticker shock.
+        3. Pick items that look visually appealing or are common cravings (like sweets or cold beverages).
+        
         Return ONLY a raw JSON array of the 2 selected IDs.
         Example: ["item_id_1", "item_id_2"]
         Absolutely no markdown formatting, no text, just the raw JSON array.

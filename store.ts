@@ -131,6 +131,7 @@ export const useStore = create<AppState>()(
         dessertPromptEnabled: false,
         dessertPromptMinutes: 15,
         dessertPromptItemIds: [],
+        aiCustomPrompt: null,
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -251,6 +252,7 @@ export const useStore = create<AppState>()(
                   dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
                   dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
                   dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
+                  aiCustomPrompt: restaurant.aiCustomPrompt || null,
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -306,6 +308,7 @@ export const useStore = create<AppState>()(
               dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
               dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
               dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
+              aiCustomPrompt: restaurant.aiCustomPrompt || null,
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -414,7 +417,8 @@ export const useStore = create<AppState>()(
             mysteryBoxItemIds: JSON.stringify(settings.mysteryBoxItemIds || []) as any,
             dessertPromptEnabled: settings.dessertPromptEnabled,
             dessertPromptMinutes: settings.dessertPromptMinutes,
-            dessertPromptItemIds: JSON.stringify(settings.dessertPromptItemIds || []) as any
+            dessertPromptItemIds: JSON.stringify(settings.dessertPromptItemIds || []) as any,
+            aiCustomPrompt: settings.aiCustomPrompt
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData as any);

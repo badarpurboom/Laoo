@@ -67,6 +67,7 @@ export interface Restaurant {
   dessertPromptEnabled?: boolean;
   dessertPromptMinutes?: number;
   dessertPromptItemIds?: string[];
+  aiCustomPrompt?: string | null;
 }
 
 export interface Banner {
@@ -126,6 +127,7 @@ export interface Order {
 
 export interface RestaurantSettings {
   restaurantId: string;
+  aiCustomPrompt?: string | null;
   name: string;
   logoUrl: string;
   address: string;
