@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '../../store';
-import { MenuItem, CartItem, Order, OrderType, Category } from '../../types';
+import { MenuItem, CartItem, Order, OrderType, Category, RewardLevel } from '../../types';
+import RewardProgressBar from './RewardProgressBar';
 
 // ── Marketing Banner Carousel ──────────────────────────────────────────────
 const BannerCarousel: React.FC = React.memo(() => {
@@ -660,25 +661,9 @@ const CartModal: React.FC<CartModalProps & {
               )}
 
               {/* Reward Progress Bar */}
-              {settings.giftThreshold && settings.giftThreshold > 0 && settings.giftItemId && cart.length > 0 && (() => {
-                const giftItem = menuItems.find(m => m.id === settings.giftItemId);
-                if (!giftItem) return null;
-                const amountToReward = settings.giftThreshold - cartTotal;
-                const progress = Math.min(100, (cartTotal / settings.giftThreshold) * 100);
-                const isUnlocked = amountToReward <= 0;
-
-                return (
-                  <div className="mb-6 bg-emerald-50 border border-emerald-100 p-4 rounded-xl relative overflow-hidden">
-                    <h4 className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 mb-2">
-                      <i className="fas fa-gift text-emerald-500"></i>
-                      {isUnlocked ? "Reward Unlocked!" : `Spend ₹${amountToReward.toFixed(0)} more for a FREE ${giftItem.name}!`}
-                    </h4>
-                    <div className="w-full bg-emerald-200/50 rounded-full h-2.5 overflow-hidden">
-                      <div className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
-                    </div>
-                  </div>
-                );
-              })()}
+              {settings.rewardConfig && settings.rewardConfig.length > 0 && cart.length > 0 && (
+                <RewardProgressBar cartTotal={cartTotal} rewardConfig={settings.rewardConfig} />
+              )}
 
               {/* Mystery Box */}
               {settings.mysteryBoxEnabled && cart.length > 0 && !cart.find(c => c.id === 'mystery_box') && (
@@ -1080,19 +1065,22 @@ const CustomerView: React.FC = () => {
     try {
       let finalItems = [...cart];
 
-      // 1. If Gift threshold is met, implicitly add the free item before submitting
-      if (settings.giftThreshold && settings.giftItemId && cartTotal >= settings.giftThreshold) {
-        const giftItem = menuItems.find(m => m.id === settings.giftItemId);
-        if (giftItem && !finalItems.find(i => i.id === giftItem.id && i.price === 0)) {
-          finalItems.push({
-            ...giftItem,
-            quantity: 1,
-            portionType: 'full',
-            price: 0,
-            isUpsell: true,
-            marketingSource: 'REWARD'
-          });
-        }
+      // 1. Check for multi-level rewards milestone and add them as free items
+      if (settings.rewardConfig && settings.rewardConfig.length > 0) {
+        settings.rewardConfig.forEach(reward => {
+          if (cartTotal >= reward.threshold && reward.label) {
+            finalItems.push({
+              id: `REWARD-${reward.threshold}`,
+              name: `🎁 REWARD: ${reward.label}`,
+              quantity: 1,
+              portionType: 'full',
+              price: 0,
+              isReward: true,
+              isUpsell: true,
+              marketingSource: 'MILESTONE_REWARD'
+            } as any);
+          }
+        });
       }
 
       // 2. Resolve Mystery Box to actual item before creating the order

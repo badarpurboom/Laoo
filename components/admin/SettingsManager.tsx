@@ -257,6 +257,76 @@ const SettingsManager: React.FC = () => {
                </div>
             </div>
          </section>
+         {/* Reward Tiers Management */}
+         <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <div className="flex justify-between items-center mb-6">
+               <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <i className="fas fa-gift text-orange-600"></i> Reward Milestones
+               </h3>
+               <button
+                  onClick={() => {
+                     const newRewards = [...(settings.rewardConfig || []), { threshold: 0, label: '' }];
+                     updateSettings({ ...settings, rewardConfig: newRewards });
+                  }}
+                  className="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors"
+               >
+                  <i className="fas fa-plus mr-1"></i> Add Tier
+               </button>
+            </div>
+
+            <p className="text-xs text-slate-500 mb-4 italic">
+               Threshold (₹) set karo aur reward ka naam likho. Customers ko motivate karne ke liye ye progress bar par dikhenge.
+            </p>
+
+            <div className="space-y-3">
+               {(settings.rewardConfig || []).length === 0 && (
+                  <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                     <p className="text-sm text-slate-400">No rewards configured yet.</p>
+                  </div>
+               )}
+               {(settings.rewardConfig || []).map((reward, index) => (
+                  <div key={index} className="flex gap-3 items-end bg-slate-50 p-3 rounded-xl border border-slate-100 group">
+                     <div className="flex-1 space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Threshold (₹)</label>
+                        <input
+                           type="number"
+                           value={reward.threshold}
+                           onChange={e => {
+                              const newRewards = [...(settings.rewardConfig || [])];
+                              newRewards[index].threshold = Number(e.target.value);
+                              updateSettings({ ...settings, rewardConfig: newRewards });
+                           }}
+                           placeholder="e.g. 149"
+                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-orange-500"
+                        />
+                     </div>
+                     <div className="flex-[2] space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Reward Label</label>
+                        <input
+                           type="text"
+                           value={reward.label}
+                           onChange={e => {
+                              const newRewards = [...(settings.rewardConfig || [])];
+                              newRewards[index].label = e.target.value;
+                              updateSettings({ ...settings, rewardConfig: newRewards });
+                           }}
+                           placeholder="e.g. Free Dip"
+                           className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold outline-none focus:border-orange-500"
+                        />
+                     </div>
+                     <button
+                        onClick={() => {
+                           const newRewards = settings.rewardConfig?.filter((_, i) => i !== index);
+                           updateSettings({ ...settings, rewardConfig: newRewards });
+                        }}
+                        className="p-2.5 text-slate-400 hover:text-red-500 transition-colors"
+                     >
+                        <i className="fas fa-trash-alt"></i>
+                     </button>
+                  </div>
+               ))}
+            </div>
+         </section>
 
          {/* AI Configuration */}
          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">

@@ -1,6 +1,10 @@
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
 export type OrderType = 'dine-in' | 'takeaway' | 'delivery';
+export interface RewardLevel {
+  threshold: number;
+  label: string;
+}
 
 export interface Category {
   id: string;
@@ -68,6 +72,7 @@ export interface Restaurant {
   dessertPromptMinutes?: number;
   dessertPromptItemIds?: string[];
   aiCustomPrompt?: string | null;
+  rewardConfig?: RewardLevel[];
 }
 
 export interface Banner {
@@ -106,6 +111,7 @@ export interface CartItem extends MenuItem {
   portionType: 'half' | 'full';
   price: number; // The actual price for the selected portion
   isUpsell?: boolean;
+  isReward?: boolean;
   marketingSource?: string | null;
   marketingRuleId?: string | null;
 }
@@ -165,6 +171,7 @@ export interface RestaurantSettings {
   dessertPromptEnabled?: boolean;
   dessertPromptMinutes?: number;
   dessertPromptItemIds?: string[];
+  rewardConfig?: RewardLevel[];
 }
 
 export interface MarketingRule {

@@ -60,6 +60,7 @@ model Restaurant {
   dessertPromptMinutes  Int     @default(15)
   dessertPromptItemIds  String? // JSON array of up to 3 dessert/drink item IDs
   aiCustomPrompt        String? // Custom instructions for AI behavior
+  rewardConfig          String? // JSON array of reward levels [{threshold: number, label: string}]
   
   createdAt   DateTime   @default(now())
   categories  Category[]
@@ -129,7 +130,8 @@ model Order {
 model OrderDetail {
   id         String   @id @default(cuid())
   orderId    String
-  menuItemId String
+  menuItemId String?
+  customName String?
   quantity   Int
   price      Float
   portion    String?  @default("full")
@@ -137,7 +139,7 @@ model OrderDetail {
   marketingSource String? // POPUP, MYSTERY_BOX, CROSS_SELL, COMBO
   marketingRuleId String? // ID of the MarketingRule that triggered this
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
 }
 
 model Notification {

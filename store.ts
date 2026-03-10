@@ -16,7 +16,6 @@ import {
 } from './types';
 import { restaurantService, menuService, orderService, aiServiceApi, bannerService } from './services/api';
 
-// Safe JSON parsing helper
 const safeParseItemIds = (data: any): string[] => {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -26,6 +25,16 @@ const safeParseItemIds = (data: any): string[] => {
   } catch (e) {
     console.error("Parse error:", e);
     return [];
+  }
+};
+
+const safeParseJson = (data: any, fallback: any = []): any => {
+  if (!data) return fallback;
+  try {
+    return typeof data === 'string' ? JSON.parse(data) : data;
+  } catch (e) {
+    console.error("JSON parse error:", e);
+    return fallback;
   }
 };
 
@@ -132,6 +141,7 @@ export const useStore = create<AppState>()(
         dessertPromptMinutes: 15,
         dessertPromptItemIds: [],
         aiCustomPrompt: null,
+        rewardConfig: [],
         orderPreferences: {
           dineIn: true,
           takeaway: true,
@@ -253,6 +263,7 @@ export const useStore = create<AppState>()(
                   dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
                   dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
                   aiCustomPrompt: restaurant.aiCustomPrompt || null,
+                  rewardConfig: safeParseJson(restaurant.rewardConfig),
                   orderPreferences: {
                     dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                     takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -309,6 +320,7 @@ export const useStore = create<AppState>()(
               dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
               dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
               aiCustomPrompt: restaurant.aiCustomPrompt || null,
+              rewardConfig: safeParseJson(restaurant.rewardConfig),
               orderPreferences: {
                 dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
                 takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
@@ -418,7 +430,8 @@ export const useStore = create<AppState>()(
             dessertPromptEnabled: settings.dessertPromptEnabled,
             dessertPromptMinutes: settings.dessertPromptMinutes,
             dessertPromptItemIds: JSON.stringify(settings.dessertPromptItemIds || []) as any,
-            aiCustomPrompt: settings.aiCustomPrompt
+            aiCustomPrompt: settings.aiCustomPrompt,
+            rewardConfig: JSON.stringify(settings.rewardConfig || []) as any
           };
           try {
             await restaurantService.update(activeRestaurantId, updateData as any);

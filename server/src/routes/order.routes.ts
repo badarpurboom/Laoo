@@ -24,13 +24,14 @@ router.get('/:restaurantId', async (req, res) => {
             status: o.status.toLowerCase(),
             timestamp: o.createdAt,
             items: o.details.map((d: any) => ({
-                id: d.menuItemId,
-                name: d.menuItem.name,
+                id: d.menuItemId || d.id,
+                name: d.menuItem?.name || d.customName || 'Unknown Item',
                 price: d.price,
-                fullPrice: d.menuItem.fullPrice,
+                fullPrice: d.menuItem?.fullPrice || d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
                 isUpsell: d.isUpsell || false,
+                isReward: !!d.customName,
                 marketingSource: d.marketingSource || null
             }))
         }));
@@ -57,9 +58,12 @@ router.post('/', async (req, res) => {
 
         for (const i of itemsList) {
             let resolvedItemId = i.id || i.menuItemId;
+            // If ID starts with REWARD or it's flagged as reward, it's a custom reward item
+            const isReward = i.isReward || (resolvedItemId && resolvedItemId.startsWith('REWARD-'));
 
             orderDetails.push({
-                menuItemId: resolvedItemId,
+                menuItemId: isReward ? null : resolvedItemId,
+                customName: isReward ? i.name : null,
                 quantity: i.quantity,
                 price: i.price,
                 portion: i.portionType || 'full',

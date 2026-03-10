@@ -469,33 +469,74 @@ const MarketingManager: React.FC = () => {
                 </div>
 
                 <div className="p-6 space-y-8 bg-slate-50/50">
-                    {/* 1. Reward Threshold */}
-                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><i className="fas fa-gift text-pink-500"></i> Spend Rewards</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Required Spend Form (₹)</label>
-                                <input
-                                    type="number"
-                                    value={settings.giftThreshold || ''}
-                                    onChange={(e) => updateSettings({ ...settings, giftThreshold: e.target.value ? Number(e.target.value) : null })}
-                                    placeholder="e.g. 1000"
-                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Free Reward Item</label>
-                                <select
-                                    value={settings.giftItemId || ''}
-                                    onChange={(e) => updateSettings({ ...settings, giftItemId: e.target.value || null })}
-                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
-                                >
-                                    <option value="">None (Disable Reward)</option>
-                                    {menuItems.map(m => (
-                                        <option key={`gift-${m.id}`} value={m.id}>{m.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                    {/* Multi-Level Reward Milestones */}
+                    <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-orange-400">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                                <i className="fas fa-gift text-orange-500"></i> Reward Milestones
+                            </h4>
+                            <button
+                                onClick={() => {
+                                    const newRewards = [...(settings.rewardConfig || []), { threshold: 0, label: '' }];
+                                    updateSettings({ ...settings, rewardConfig: newRewards });
+                                }}
+                                className="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-bold hover:bg-orange-100 transition-colors uppercase"
+                            >
+                                <i className="fas fa-plus mr-1"></i> Add Milestone
+                            </button>
+                        </div>
+
+                        <p className="text-[10px] text-slate-500 mb-4 italic">
+                            Threshold (₹) set karo aur reward ka naam likho. Ye rewards cart me automatic progress bar dikhayenge.
+                        </p>
+
+                        <div className="space-y-3">
+                            {(settings.rewardConfig || []).length === 0 && (
+                                <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                    <p className="text-xs text-slate-400">No milestones set. High AOV start rewards today!</p>
+                                </div>
+                            )}
+                            {(settings.rewardConfig || []).map((reward, index) => (
+                                <div key={index} className="flex gap-3 items-end bg-slate-50 p-3 rounded-xl border border-slate-100 group">
+                                    <div className="flex-1 space-y-1">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Threshold (₹)</label>
+                                        <input
+                                            type="number"
+                                            value={reward.threshold}
+                                            onChange={e => {
+                                                const newRewards = [...(settings.rewardConfig || [])];
+                                                newRewards[index].threshold = Number(e.target.value);
+                                                updateSettings({ ...settings, rewardConfig: newRewards });
+                                            }}
+                                            placeholder="e.g. 149"
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none focus:border-orange-500"
+                                        />
+                                    </div>
+                                    <div className="flex-[2] space-y-1">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Reward Description</label>
+                                        <input
+                                            type="text"
+                                            value={reward.label}
+                                            onChange={e => {
+                                                const newRewards = [...(settings.rewardConfig || [])];
+                                                newRewards[index].label = e.target.value;
+                                                updateSettings({ ...settings, rewardConfig: newRewards });
+                                            }}
+                                            placeholder="e.g. Free 5 Veg Momos"
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none focus:border-orange-500"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const newRewards = settings.rewardConfig?.filter((_, i) => i !== index);
+                                            updateSettings({ ...settings, rewardConfig: newRewards });
+                                        }}
+                                        className="p-2.5 text-slate-400 hover:text-red-500 transition-colors"
+                                    >
+                                        <i className="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
