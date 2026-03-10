@@ -1332,11 +1332,16 @@ const CustomerView: React.FC = () => {
         </div>
 
 
-        {/* Sticky Bottom Order Bar (Floating Island Design) */}
         {
           cart.length > 0 && (
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md">
-              <div className="bg-slate-900/95 backdrop-blur-xl text-white p-3.5 pr-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex justify-between items-center animate-in slide-in-from-bottom-10 fade-in duration-500 border border-white/10">
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none select-none">
+              {/* Progress Bar Floating Above */}
+              <div className="mb-3 pointer-events-auto select-auto">
+                <RewardProgressBar cartTotal={finalTotal} rewardConfig={settings.rewardConfig || []} />
+              </div>
+
+              {/* Sticky Bottom Order Bar (Floating Island Design) */}
+              <div className="bg-slate-900/95 backdrop-blur-xl text-white p-3.5 pr-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex justify-between items-center animate-in slide-in-from-bottom-10 fade-in duration-500 border border-white/10 pointer-events-auto select-auto">
                 <div className="flex items-center gap-4 pl-4 border-r border-white/10 pr-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] text-orange-400 font-bold uppercase tracking-[0.1em]">
