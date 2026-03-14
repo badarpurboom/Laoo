@@ -1153,7 +1153,8 @@ const CustomerView: React.FC = () => {
       setCheckoutStep('success');
     } catch (err: any) {
       console.error("Order failed:", err);
-      alert("Failed to place order. Please try again.");
+      const errorMsg = err.response?.data?.error || err.message || "Something went wrong";
+      alert(`Failed to place order: ${errorMsg}`);
     }
   };
 
