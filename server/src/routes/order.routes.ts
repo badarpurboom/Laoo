@@ -139,12 +139,13 @@ router.patch('/:id/status', async (req, res) => {
             status: order.status.toLowerCase(),
             timestamp: order.createdAt,
             items: order.details.map((d: any) => ({
-                id: d.menuItemId,
-                name: d.menuItem.name,
+                id: d.menuItemId || d.id,
+                name: d.menuItem?.name || d.customName || 'Unknown Item',
                 price: d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
                 isUpsell: d.isUpsell || false,
+                isReward: !!d.customName,
                 marketingSource: d.marketingSource || null
             }))
         };
@@ -172,12 +173,13 @@ router.patch('/:id/payment-status', async (req, res) => {
             status: order.status.toLowerCase(),
             timestamp: order.createdAt,
             items: order.details.map((d: any) => ({
-                id: d.menuItemId,
-                name: d.menuItem.name,
+                id: d.menuItemId || d.id,
+                name: d.menuItem?.name || d.customName || 'Unknown Item',
                 price: d.price,
                 quantity: d.quantity,
                 portionType: d.portion || 'full',
                 isUpsell: d.isUpsell || false,
+                isReward: !!d.customName,
                 marketingSource: d.marketingSource || null
             }))
         };
