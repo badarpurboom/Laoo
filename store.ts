@@ -90,7 +90,7 @@ interface AppState {
   clearRecommendations: () => void;
 
   // Banner Actions
-  fetchBanners: () => Promise<void>;
+  fetchBanners: (restaurantId?: string) => Promise<void>;
   addBanner: (data: Partial<Banner>) => Promise<void>;
   updateBanner: (id: string, data: Partial<Banner>) => Promise<void>;
   deleteBanner: (id: string) => Promise<void>;
@@ -281,53 +281,74 @@ export const useStore = create<AppState>()(
         get().fetchDashboardData();
       },
       setActiveRestaurantBySlug: async (slug) => {
-        const resp = await restaurantService.getBySlug(slug);
-        if (resp.data) {
-          const restaurant = resp.data as any;
-          set({
-            activeRestaurantId: restaurant.id,
-            categories: restaurant.categories || [],
-            menuItems: restaurant.menuItems || [],
-            settings: {
-              restaurantId: restaurant.id,
-              name: restaurant.name || '',
-              logoUrl: restaurant.logoUrl || '',
-              address: restaurant.address || '',
-              contact: restaurant.phone || '',
-              gstNumber: '',
-              taxEnabled: restaurant.taxEnabled !== undefined ? restaurant.taxEnabled : false,
-              taxPercentage: restaurant.taxPercentage !== undefined ? restaurant.taxPercentage : 0,
-              deliveryChargesEnabled: restaurant.deliveryChargesEnabled !== undefined ? restaurant.deliveryChargesEnabled : false,
-              deliveryCharges: restaurant.deliveryCharges !== undefined ? restaurant.deliveryCharges : 0,
-              deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 0,
-              currency: 'INR',
-              isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
-              aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : false,
-              aiUpsellPopupEnabled: restaurant.aiUpsellPopupEnabled !== undefined ? restaurant.aiUpsellPopupEnabled : false,
-              popupMode: restaurant.popupMode || 'MANUAL',
-              popupItem1Id: restaurant.popupItem1Id || null,
-              popupItem2Id: restaurant.popupItem2Id || null,
-              popup1Text: restaurant.popup1Text || null,
-              popup2Text: restaurant.popup2Text || null,
-              giftThreshold: restaurant.giftThreshold !== undefined ? restaurant.giftThreshold : null,
-              giftItemId: restaurant.giftItemId || null,
-              aiMarketingEnabled: restaurant.aiMarketingEnabled !== undefined ? restaurant.aiMarketingEnabled : true,
-              maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
-              mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
-              mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
-              mysteryBoxItemIds: safeParseItemIds(restaurant.mysteryBoxItemIds),
-              dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
-              dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
-              dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
-              aiCustomPrompt: restaurant.aiCustomPrompt || null,
-              rewardConfig: safeParseJson(restaurant.rewardConfig),
-              orderPreferences: {
-                dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
-                takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
-                delivery: restaurant.deliveryEnabled !== undefined ? restaurant.deliveryEnabled : true,
-                requireTableNumber: restaurant.requireTableNumber !== undefined ? restaurant.requireTableNumber : true
+        try {
+          const resp = await restaurantService.getBySlug(slug);
+          if (resp.data) {
+            const restaurant = resp.data as any;
+            set({
+              activeRestaurantId: restaurant.id,
+              categories: restaurant.categories || [],
+              menuItems: restaurant.menuItems || [],
+              settings: {
+                restaurantId: restaurant.id,
+                name: restaurant.name || '',
+                logoUrl: restaurant.logoUrl || '',
+                address: restaurant.address || '',
+                contact: restaurant.phone || '',
+                gstNumber: '',
+                taxEnabled: restaurant.taxEnabled !== undefined ? restaurant.taxEnabled : false,
+                taxPercentage: restaurant.taxPercentage !== undefined ? restaurant.taxPercentage : 0,
+                deliveryChargesEnabled: restaurant.deliveryChargesEnabled !== undefined ? restaurant.deliveryChargesEnabled : false,
+                deliveryCharges: restaurant.deliveryCharges !== undefined ? restaurant.deliveryCharges : 0,
+                deliveryFreeThreshold: restaurant.deliveryFreeThreshold !== undefined ? restaurant.deliveryFreeThreshold : 0,
+                currency: 'INR',
+                isOpen: restaurant.isActive !== undefined ? restaurant.isActive : true,
+                aiUpsellEnabled: restaurant.aiUpsellEnabled !== undefined ? restaurant.aiUpsellEnabled : false,
+                aiUpsellPopupEnabled: restaurant.aiUpsellPopupEnabled !== undefined ? restaurant.aiUpsellPopupEnabled : false,
+                popupMode: restaurant.popupMode || 'MANUAL',
+                popupItem1Id: restaurant.popupItem1Id || null,
+                popupItem2Id: restaurant.popupItem2Id || null,
+                popup1Text: restaurant.popup1Text || null,
+                popup2Text: restaurant.popup2Text || null,
+                giftThreshold: restaurant.giftThreshold !== undefined ? restaurant.giftThreshold : null,
+                giftItemId: restaurant.giftItemId || null,
+                aiMarketingEnabled: restaurant.aiMarketingEnabled !== undefined ? restaurant.aiMarketingEnabled : true,
+                maxAiDiscountPct: restaurant.maxAiDiscountPct !== undefined ? restaurant.maxAiDiscountPct : 15,
+                mysteryBoxEnabled: restaurant.mysteryBoxEnabled !== undefined ? restaurant.mysteryBoxEnabled : false,
+                mysteryBoxPrice: restaurant.mysteryBoxPrice !== undefined ? restaurant.mysteryBoxPrice : 49,
+                mysteryBoxItemIds: safeParseItemIds(restaurant.mysteryBoxItemIds),
+                dessertPromptEnabled: restaurant.dessertPromptEnabled !== undefined ? restaurant.dessertPromptEnabled : false,
+                dessertPromptMinutes: restaurant.dessertPromptMinutes !== undefined ? restaurant.dessertPromptMinutes : 15,
+                dessertPromptItemIds: safeParseItemIds(restaurant.dessertPromptItemIds),
+                aiCustomPrompt: restaurant.aiCustomPrompt || null,
+                rewardConfig: safeParseJson(restaurant.rewardConfig),
+                orderPreferences: {
+                  dineIn: restaurant.dineInEnabled !== undefined ? restaurant.dineInEnabled : true,
+                  takeaway: restaurant.takeawayEnabled !== undefined ? restaurant.takeawayEnabled : true,
+                  delivery: restaurant.deliveryEnabled !== undefined ? restaurant.deliveryEnabled : true,
+                  requireTableNumber: restaurant.requireTableNumber !== undefined ? restaurant.requireTableNumber : true
+                }
               }
-            }
+            });
+            // Fetch banners immediately so they are ready on first mount
+            bannerService.getBanners(restaurant.id).then(resp => {
+              set({ banners: resp.data });
+            }).catch(() => {});
+          } else {
+            // Clear state if restaurant not found
+            set({
+              activeRestaurantId: null,
+              categories: [],
+              menuItems: [],
+              settings: { ...get().settings, restaurantId: '', name: 'Restaurant Not Found' }
+            });
+          }
+        } catch (err) {
+          console.error("Failed to fetch restaurant by slug", err);
+          set({
+            activeRestaurantId: null,
+            categories: [],
+            menuItems: [],
           });
         }
       },
@@ -388,10 +409,24 @@ export const useStore = create<AppState>()(
         }));
       },
       updateCategory: async (id, data) => {
-        const resp = await menuService.updateCategory(id, data);
+        // Optimistic update
+        const previousCategories = get().categories;
         set((state) => ({
-          categories: state.categories.map(c => c.id === id ? { ...c, ...resp.data } : c)
+          categories: state.categories.map(c => c.id === id ? { ...c, ...data } : c)
         }));
+
+        try {
+          const resp = await menuService.updateCategory(id, data);
+          // Sync with server response
+          set((state) => ({
+            categories: state.categories.map(c => c.id === id ? { ...c, ...resp.data } : c)
+          }));
+        } catch (err) {
+          console.error("Failed to update category", err);
+          // Revert on error
+          set({ categories: previousCategories });
+          throw err;
+        }
       },
       updateSettings: async (settings) => {
         set({ settings });
@@ -463,11 +498,11 @@ export const useStore = create<AppState>()(
       },
       clearRecommendations: () => set({ recommendedItems: [] }),
 
-      fetchBanners: async () => {
-        const { activeRestaurantId } = get();
-        if (!activeRestaurantId) return;
+      fetchBanners: async (restaurantId?: string) => {
+        const id = restaurantId || get().activeRestaurantId;
+        if (!id) return;
         try {
-          const resp = await bannerService.getBanners(activeRestaurantId);
+          const resp = await bannerService.getBanners(id);
           set({ banners: resp.data });
         } catch (err) {
           console.error('Failed to fetch banners', err);

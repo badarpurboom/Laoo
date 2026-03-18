@@ -382,6 +382,29 @@ const MenuManager: React.FC = () => {
                           </button>
                         </div>
 
+                        <div className="flex gap-2 mb-3">
+                          {/* Reward Exclusion Toggle */}
+                          <label className="flex-1 flex items-center justify-between gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3 cursor-pointer hover:bg-slate-100 transition-colors">
+                            <div className="flex items-center gap-2">
+                              <i className="fas fa-gift text-indigo-500 text-xs"></i>
+                              <div>
+                                <div className="text-[10px] font-black text-slate-700 uppercase">Rewards</div>
+                                <div className="text-[9px] text-slate-400">Exclude from progress bar</div>
+                              </div>
+                            </div>
+                            <input
+                              type="checkbox"
+                              checked={cat.excludeFromRewards || false}
+                              onChange={async (e) => {
+                                await updateCategory(cat.id, { excludeFromRewards: e.target.checked });
+                              }}
+                              className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            />
+                          </label>
+
+                          {/* Icon Selector (Optional but good to have) */}
+                        </div>
+
                         {/* Fake Discount Control */}
                         <div className="bg-gradient-to-br from-orange-50 to-rose-50 border border-orange-100 rounded-xl p-3">
                           <div className="flex items-center gap-2 mb-2">

@@ -9,9 +9,13 @@ const BannerCarousel: React.FC = React.memo(() => {
   const fetchBanners = useStore(state => state.fetchBanners);
   const activeBanners = useMemo(() => banners.filter(b => b.isActive), [banners]);
   const [current, setCurrent] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => { fetchBanners(); }, [fetchBanners]);
+  useEffect(() => {
+    setIsLoading(true);
+    fetchBanners().finally(() => setIsLoading(false));
+  }, [fetchBanners]);
 
   useEffect(() => {
     if (activeBanners.length <= 1) return;
@@ -21,6 +25,16 @@ const BannerCarousel: React.FC = React.memo(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [activeBanners.length]);
 
+  // Show skeleton while loading
+  if (isLoading) {
+    return (
+      <div className="px-4 mt-3 mb-6">
+        <div className="w-full h-44 sm:h-56 rounded-2xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse" />
+      </div>
+    );
+  }
+
+  // Only show hero fallback if loading is done and there are no banners
   if (activeBanners.length === 0) {
     return (
       <section className="px-4 py-8 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-b-[2.5rem] mb-6">
@@ -581,7 +595,7 @@ const CartModal: React.FC<CartModalProps & {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full sm:max-w-md h-[90vh] sm:h-auto sm:max-h-[80vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col">
+      <div className="bg-slate-50 w-full sm:max-w-md h-[90vh] sm:h-auto sm:max-h-[80vh] rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col shadow-2xl">
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-800">Your Cart</h2>
           <button onClick={() => { onClose(); setCheckoutStep('cart'); }} className="text-slate-400 hover:text-slate-600">
@@ -589,7 +603,7 @@ const CartModal: React.FC<CartModalProps & {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar relative overflow-x-hidden">
           {checkoutStep === 'cart' && (
             <>
               {/* AI Upsell Carousel */}
@@ -661,9 +675,18 @@ const CartModal: React.FC<CartModalProps & {
               )}
 
               {/* Reward Progress Bar */}
-              {settings.rewardConfig && settings.rewardConfig.length > 0 && cart.length > 0 && (
-                <RewardProgressBar cartTotal={cartTotal} rewardConfig={settings.rewardConfig} />
-              )}
+              {(() => {
+                const hasExcludedItem = cart.some(item => {
+                  const category = tenantCategories.find(c => c.id === item.categoryId);
+                  return category?.excludeFromRewards === true;
+                });
+
+                return settings.rewardConfig && settings.rewardConfig.length > 0 && cart.length > 0 && !hasExcludedItem && (
+                  <div className="mb-4">
+                    <RewardProgressBar cartTotal={cartTotal} rewardConfig={settings.rewardConfig} />
+                  </div>
+                );
+              })()}
 
               {/* Mystery Box */}
               {settings.mysteryBoxEnabled && cart.length > 0 && !cart.find(c => c.id === 'mystery_box') && (
@@ -753,7 +776,7 @@ const CartModal: React.FC<CartModalProps & {
         </div>
 
         {checkoutStep !== 'success' && cart.length > 0 && (
-          <div className="p-6 border-t bg-slate-50">
+          <div className="p-6 border-t border-slate-200 bg-white relative z-20">
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-slate-600 text-sm"><span>Subtotal</span><span>₹{cartTotal.toFixed(0)}</span></div>
               <div className="flex justify-between text-slate-600 text-sm"><span>Tax</span><span>₹{taxAmount.toFixed(0)}</span></div>
@@ -823,7 +846,7 @@ const CustomerView: React.FC = () => {
 
     popup1TimerRef.current = setTimeout(() => {
       setShowPopup1(true);
-    }, 20000);
+    }, 40000);
 
     return () => {
       if (popup1TimerRef.current) clearTimeout(popup1TimerRef.current);
@@ -836,7 +859,7 @@ const CustomerView: React.FC = () => {
     if (!settings.popupItem2Id) return;
     popup2TimerRef.current = setTimeout(() => {
       setShowPopup2(true);
-    }, 10000);
+    }, 60000);
   };
 
   const handleSkipPopup2 = () => {
@@ -1066,7 +1089,12 @@ const CustomerView: React.FC = () => {
       let finalItems = [...cart];
 
       // 1. Check for multi-level rewards milestone and add them as free items
-      if (settings.rewardConfig && settings.rewardConfig.length > 0) {
+      const hasExcludedItem = cart.some(item => {
+        const category = tenantCategories.find(c => c.id === item.categoryId);
+        return category?.excludeFromRewards === true;
+      });
+
+      if (settings.rewardConfig && settings.rewardConfig.length > 0 && !hasExcludedItem) {
         settings.rewardConfig.forEach(reward => {
           if (cartTotal >= reward.threshold && reward.label) {
             finalItems.push({
@@ -1337,9 +1365,18 @@ const CustomerView: React.FC = () => {
           cart.length > 0 && (
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-md pointer-events-none select-none flex flex-col items-stretch">
               {/* Progress Bar Floating Above - Now attached */}
-              <div className="pointer-events-auto select-auto">
-                <RewardProgressBar cartTotal={finalTotal} rewardConfig={settings.rewardConfig || []} />
-              </div>
+              {(() => {
+                const hasExcludedItem = cart.some(item => {
+                  const category = tenantCategories.find(c => c.id === item.categoryId);
+                  return category?.excludeFromRewards === true;
+                });
+
+                return settings.rewardConfig && settings.rewardConfig.length > 0 && !hasExcludedItem && (
+                  <div className="pointer-events-auto select-auto">
+                    <RewardProgressBar cartTotal={finalTotal} rewardConfig={settings.rewardConfig} />
+                  </div>
+                );
+              })()}
 
               {/* Sticky Bottom Order Bar (Floating Island Design) */}
               <div className="bg-slate-900/95 backdrop-blur-xl text-white p-3.5 pr-4 rounded-b-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex justify-between items-center animate-in slide-in-from-bottom-10 fade-in duration-500 border border-white/10 pointer-events-auto select-auto">

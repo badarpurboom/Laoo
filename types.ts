@@ -12,6 +12,7 @@ export interface Category {
   name: string;
   icon: string;
   fakeDiscountPct?: number;
+  excludeFromRewards?: boolean;
 }
 
 export type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'CUSTOMER';
