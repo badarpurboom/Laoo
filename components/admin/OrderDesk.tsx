@@ -239,6 +239,27 @@ const OrderDesk: React.FC = () => {
                   </span>
                 </div>
 
+                <div className="flex flex-col gap-1 mb-2">
+                  {order.address && (
+                    <div className="text-xs text-slate-500 flex items-center gap-1">
+                      <i className="fas fa-map-marker-alt text-[10px] w-4 text-center"></i>
+                      <span className="line-clamp-2" title={order.address}>{order.address}</span>
+                    </div>
+                  )}
+                  {order.customerPhone && order.orderType === 'delivery' && (
+                    <div className="text-xs text-slate-500 flex items-center gap-1">
+                      <i className="fas fa-phone text-[10px] w-4 text-center"></i>
+                      {order.customerPhone}
+                    </div>
+                  )}
+                  {order.tableNumber && order.orderType === 'dine-in' && (
+                    <div className="text-xs text-slate-500 flex items-center gap-1">
+                      <i className="fas fa-chair text-[10px] w-4 text-center"></i>
+                      {order.tableNumber}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end mb-2">
                   <button
                     onClick={(e) => { e.stopPropagation(); printKOT(order, settings, activeRestaurant?.businessType); }}
