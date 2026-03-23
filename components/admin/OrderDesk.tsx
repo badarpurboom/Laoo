@@ -224,8 +224,8 @@ const OrderDesk: React.FC = () => {
       {/* Simple Mode for Small Restaurants (No Table Number = No Status Flow) */}
       {(!settings.orderPreferences?.requireTableNumber && settings.orderPreferences?.dineIn) ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {tenantOrders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').map(order => (
-            <div key={order.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col justify-between hover:shadow-md transition-all">
+          {tenantOrders.filter(o => o.status !== 'cancelled').map(order => (
+            <div key={order.id} className={`bg-white rounded-xl shadow-sm border ${order.status === 'delivered' ? 'border-green-300 opacity-80' : 'border-slate-200'} p-4 flex flex-col justify-between hover:shadow-md transition-all`}>
               <div>
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -267,19 +267,25 @@ const OrderDesk: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                onClick={async () => {
-                  await updateOrderStatus(order.id, 'delivered');
-                  await updatePaymentStatus(order.id, 'paid');
-                  fetchDashboardData();
-                }}
-                className="w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <i className="fas fa-check"></i> Finish Order
-              </button>
+              {order.status !== 'delivered' ? (
+                <button
+                  onClick={async () => {
+                    await updateOrderStatus(order.id, 'delivered');
+                    await updatePaymentStatus(order.id, 'paid');
+                    fetchDashboardData();
+                  }}
+                  className="w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-check"></i> Finish Order
+                </button>
+              ) : (
+                <div className="w-full py-3 bg-green-50 text-green-700 border border-green-200 rounded-lg font-bold flex items-center justify-center gap-2">
+                  <i className="fas fa-check-circle"></i> Delivered
+                </div>
+              )}
             </div>
           ))}
-          {tenantOrders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length === 0 && (
+          {tenantOrders.filter(o => o.status !== 'cancelled').length === 0 && (
             <div className="col-span-full py-20 text-center">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
                 <i className="fas fa-check text-2xl"></i>
