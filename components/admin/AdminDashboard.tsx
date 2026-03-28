@@ -5,13 +5,47 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const AdminDashboard: React.FC = () => {
   const { orders, activeRestaurantId, categories, menuItems } = useStore();
+  const [filterRange, setFilterRange] = React.useState<'today' | 'yesterday' | 'last7' | 'last30' | 'all'>('today');
 
-  const tenantOrders = orders.filter(o => o.restaurantId === activeRestaurantId);
+  const tenantOrders = useMemo(() => orders.filter(o => o.restaurantId === activeRestaurantId), [orders, activeRestaurantId]);
 
-  const totalRevenue = tenantOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-  const pendingOrders = tenantOrders.filter(o => o.status === 'pending').length;
-  const preparingOrders = tenantOrders.filter(o => o.status === 'preparing').length;
-  const deliveryOrders = tenantOrders.filter(o => o.status === 'delivered').length;
+  const filteredOrders = useMemo(() => {
+    const now = new Date();
+    const todayStr = now.toDateString();
+    
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const yesterdayStr = yesterday.toDateString();
+
+    return tenantOrders.filter(order => {
+      if (!order.timestamp) return filterRange === 'all';
+      const orderDate = new Date(order.timestamp);
+      const orderDateStr = orderDate.toDateString();
+
+      switch (filterRange) {
+        case 'today':
+          return orderDateStr === todayStr;
+        case 'yesterday':
+          return orderDateStr === yesterdayStr;
+        case 'last7':
+          const sevenDaysAgo = new Date(now);
+          sevenDaysAgo.setDate(now.getDate() - 7);
+          return orderDate >= sevenDaysAgo;
+        case 'last30':
+          const thirtyDaysAgo = new Date(now);
+          thirtyDaysAgo.setDate(now.getDate() - 30);
+          return orderDate >= thirtyDaysAgo;
+        case 'all':
+        default:
+          return true;
+      }
+    });
+  }, [tenantOrders, filterRange]);
+
+  const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const pendingOrders = filteredOrders.filter(o => o.status === 'pending').length;
+  const preparingOrders = filteredOrders.filter(o => o.status === 'preparing').length;
+  const deliveryOrders = filteredOrders.filter(o => o.status === 'delivered').length;
 
   // Calculate real revenue data for the last 7 days
   const revenueData = useMemo(() => {
@@ -26,7 +60,7 @@ const AdminDashboard: React.FC = () => {
       };
     });
 
-    tenantOrders.forEach(order => {
+    filteredOrders.forEach(order => {
       // Only count completed orders toward revenue chart
       if (order.status !== 'cancelled' && order.timestamp) {
         const orderDate = new Date(order.timestamp).toDateString();
@@ -38,14 +72,14 @@ const AdminDashboard: React.FC = () => {
     });
 
     return last7Days.map(d => ({ name: d.name, revenue: Math.round(d.revenue) }));
-  }, [tenantOrders]);
+  }, [filteredOrders]);
 
   // Calculate top selling categories
   const topCategoriesData = useMemo(() => {
     const categorySales: Record<string, number> = {};
     const tenantCategories = categories.filter(c => c.restaurantId === activeRestaurantId);
 
-    tenantOrders.forEach(order => {
+    filteredOrders.forEach(order => {
       if (order.status !== 'cancelled') {
         order.items.forEach(item => {
           const menuItem = menuItems.find(m => m.id === item.id);
@@ -66,7 +100,7 @@ const AdminDashboard: React.FC = () => {
       value: categorySales[cat.id] || 0
     })).sort((a, b) => b.value - a.value).slice(0, 5); // Get top 5
 
-  }, [tenantOrders, categories, menuItems, activeRestaurantId]);
+  }, [filteredOrders, categories, menuItems, activeRestaurantId]);
 
   // Calculate AI Upsell Analytics
   const aovMetrics = useMemo(() => {
@@ -77,7 +111,7 @@ const AdminDashboard: React.FC = () => {
     let reorderNudgeRev = 0;
     let dessertPromptRev = 0; // Revenue from post-meal dessert prompts
 
-    tenantOrders.forEach(order => {
+    filteredOrders.forEach(order => {
       if (order.status === 'cancelled') return;
       order.items.forEach(item => {
         if (item.marketingSource === 'POPUP') popupRev += (item.price * item.quantity);
@@ -93,11 +127,11 @@ const AdminDashboard: React.FC = () => {
     });
 
     return { popupRev, mysteryBoxRev, aiCrossSellRev, rewardCount, reorderNudgeRev, dessertPromptRev, totalAovRev: popupRev + mysteryBoxRev + aiCrossSellRev + reorderNudgeRev + dessertPromptRev };
-  }, [tenantOrders]);
+  }, [filteredOrders]);
 
   const topAIItemsData = useMemo(() => {
     const itemSales: Record<string, number> = {};
-    tenantOrders.forEach(order => {
+    filteredOrders.forEach(order => {
       if (order.status !== 'cancelled') {
         order.items.forEach(item => {
           if (item.isUpsell) {
@@ -110,18 +144,44 @@ const AdminDashboard: React.FC = () => {
       name,
       value: itemSales[name]
     })).sort((a, b) => b.value - a.value).slice(0, 5);
-  }, [tenantOrders]);
+  }, [filteredOrders]);
 
   const stats = [
     { label: "Total Revenue", value: `₹${totalRevenue.toFixed(0)}`, icon: 'fas fa-dollar-sign', color: 'bg-emerald-100 text-emerald-600' },
     { label: "AOV Opt. Revenue", value: `₹${aovMetrics.totalAovRev.toFixed(0)}`, icon: 'fas fa-chart-line', color: 'bg-indigo-100 text-indigo-600' },
-    { label: "Total Orders", value: tenantOrders.length, icon: 'fas fa-shopping-bag', color: 'bg-blue-100 text-blue-600' },
+    { label: "Total Orders", value: filteredOrders.length, icon: 'fas fa-shopping-bag', color: 'bg-blue-100 text-blue-600' },
     { label: "Pending", value: pendingOrders, icon: 'fas fa-clock', color: 'bg-orange-100 text-orange-600' },
     { label: "Delivered", value: deliveryOrders, icon: 'fas fa-check-circle', color: 'bg-purple-100 text-purple-600' },
   ];
 
   return (
     <div className="space-y-6">
+      {/* Filter Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div>
+          <h2 className="text-lg font-bold text-slate-800">Sales Overview</h2>
+          <p className="text-xs text-slate-500">Showing data for selected range</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(['today', 'yesterday', 'last7', 'last30', 'all'] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setFilterRange(r)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                filterRange === r 
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
+              }`}
+            >
+              {r === 'today' ? 'Today' : 
+               r === 'yesterday' ? 'Yesterday' : 
+               r === 'last7' ? 'Last 7 Days' : 
+               r === 'last30' ? 'Last 30 Days' : 'All Time'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => (
@@ -310,7 +370,7 @@ const AdminDashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {tenantOrders.slice(0, 5).map(order => (
+              {filteredOrders.slice(0, 5).map(order => (
                 <tr key={order.id} className="text-sm hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 font-medium">{order.id}</td>
                   <td className="px-6 py-4">{order.customerName}</td>
@@ -328,9 +388,9 @@ const AdminDashboard: React.FC = () => {
                   </td>
                 </tr>
               ))}
-              {tenantOrders.length === 0 && (
+              {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No orders yet.</td>
+                  <td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No orders found for this period.</td>
                 </tr>
               )}
             </tbody>
