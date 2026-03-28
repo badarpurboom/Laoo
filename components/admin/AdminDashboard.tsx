@@ -146,6 +146,35 @@ const AdminDashboard: React.FC = () => {
     })).sort((a, b) => b.value - a.value).slice(0, 5);
   }, [filteredOrders]);
 
+  const handleExportCSV = () => {
+    const headers = ['Order ID', 'Date', 'Customer', 'Status', 'Amount', 'Type', 'Table', 'Items'];
+    const rows = filteredOrders.map(o => [
+      o.id,
+      o.timestamp ? new Date(o.timestamp).toLocaleString() : 'N/A',
+      o.customerName,
+      o.status,
+      o.totalAmount,
+      o.orderType,
+      o.tableNumber || '-',
+      o.items.map(i => `${i.name} (x${i.quantity})`).join('; ')
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `orders_${filterRange}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const stats = [
     { label: "Total Revenue", value: `₹${totalRevenue.toFixed(0)}`, icon: 'fas fa-dollar-sign', color: 'bg-emerald-100 text-emerald-600' },
     { label: "AOV Opt. Revenue", value: `₹${aovMetrics.totalAovRev.toFixed(0)}`, icon: 'fas fa-chart-line', color: 'bg-indigo-100 text-indigo-600' },
@@ -163,6 +192,12 @@ const AdminDashboard: React.FC = () => {
           <p className="text-xs text-slate-500">Showing data for selected range</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 transition-all flex items-center gap-2 mr-2"
+          >
+            <i className="fas fa-file-csv"></i> Export CSV
+          </button>
           {(['today', 'yesterday', 'last7', 'last30', 'all'] as const).map((r) => (
             <button
               key={r}
